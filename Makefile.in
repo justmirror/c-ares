@@ -84,12 +84,13 @@ am__objects_1 = ares__close_sockets.lo ares__get_hostent.lo \
 	ares_init.lo ares_library_init.lo ares_llist.lo \
 	ares_mkquery.lo ares_nowarn.lo ares_options.lo \
 	ares_parse_a_reply.lo ares_parse_aaaa_reply.lo \
-	ares_parse_ns_reply.lo ares_parse_ptr_reply.lo \
-	ares_parse_srv_reply.lo ares_parse_txt_reply.lo \
-	ares_process.lo ares_query.lo ares_search.lo ares_send.lo \
-	ares_strcasecmp.lo ares_strdup.lo ares_strerror.lo \
-	ares_timeout.lo ares_version.lo ares_writev.lo bitncmp.lo \
-	inet_net_pton.lo inet_ntop.lo windows_port.lo
+	ares_parse_mx_reply.lo ares_parse_ns_reply.lo \
+	ares_parse_ptr_reply.lo ares_parse_srv_reply.lo \
+	ares_parse_txt_reply.lo ares_process.lo ares_query.lo \
+	ares_search.lo ares_send.lo ares_strcasecmp.lo ares_strdup.lo \
+	ares_strerror.lo ares_timeout.lo ares_version.lo \
+	ares_writev.lo bitncmp.lo inet_net_pton.lo inet_ntop.lo \
+	windows_port.lo
 am__objects_2 =
 am_libcares_la_OBJECTS = $(am__objects_1) $(am__objects_2)
 libcares_la_OBJECTS = $(am_libcares_la_OBJECTS)
@@ -313,7 +314,7 @@ MSVCFILES = vc/vc6aws.dsw vc/acountry/vc6acountry.dsp vc/adig/vc6adig.dsp \
 EXTRA_DIST = AUTHORS CHANGES README.cares Makefile.inc Makefile.dj	   \
  Makefile.m32 Makefile.netware Makefile.msvc $(man_MANS) $(MSVCFILES)	   \
  config-win32.h RELEASE-NOTES libcares.pc.in buildconf get_ver.awk maketgz \
- TODO ares_build.h.in $(PDFPAGES) cares.rc README.msvc
+ TODO ares_build.h.in $(PDFPAGES) cares.rc README.msvc $(CSOURCES) $(HHEADERS)
 
 CLEANFILES = $(PDFPAGES) $(HTMLPAGES)
 DISTCLEANFILES = ares_build.h
@@ -375,6 +376,7 @@ CSOURCES = ares__close_sockets.c	\
   ares_options.c			\
   ares_parse_a_reply.c			\
   ares_parse_aaaa_reply.c		\
+  ares_parse_mx_reply.c			\
   ares_parse_ns_reply.c			\
   ares_parse_ptr_reply.c		\
   ares_parse_srv_reply.c		\
@@ -438,6 +440,7 @@ MANPAGES = ares_cancel.3		\
   ares_mkquery.3			\
   ares_parse_a_reply.3			\
   ares_parse_aaaa_reply.3		\
+  ares_parse_mx_reply.3			\
   ares_parse_ns_reply.3			\
   ares_parse_ptr_reply.3		\
   ares_parse_srv_reply.3		\
@@ -476,6 +479,7 @@ HTMLPAGES = ares_cancel.html		\
   ares_mkquery.html			\
   ares_parse_a_reply.html		\
   ares_parse_aaaa_reply.html		\
+  ares_parse_mx_reply.html		\
   ares_parse_ns_reply.html		\
   ares_parse_ptr_reply.html		\
   ares_parse_srv_reply.html		\
@@ -514,6 +518,7 @@ PDFPAGES = ares_cancel.pdf		\
   ares_mkquery.pdf			\
   ares_parse_a_reply.pdf		\
   ares_parse_aaaa_reply.pdf		\
+  ares_parse_mx_reply.pdf		\
   ares_parse_ns_reply.pdf		\
   ares_parse_ptr_reply.pdf		\
   ares_parse_srv_reply.pdf		\
@@ -720,6 +725,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ares_options.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ares_parse_a_reply.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ares_parse_aaaa_reply.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ares_parse_mx_reply.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ares_parse_ns_reply.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ares_parse_ptr_reply.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ares_parse_srv_reply.Plo@am__quote@
