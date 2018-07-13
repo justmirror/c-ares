@@ -1,14 +1,15 @@
 AC_PREREQ(2.57)
 
 dnl Version not hardcoded here. Fetched later from ares_version.h
-AC_INIT([c-ares], [1.9.1],
+AC_INIT([c-ares], [1.10.0],
   [c-ares mailing list: http://cool.haxx.se/mailman/listinfo/c-ares])
 
 XC_OVR_ZZ50
+XC_OVR_ZZ60
 CARES_OVERRIDE_AUTOCONF
 
 AC_CONFIG_SRCDIR([ares_ipv6.h])
-AM_CONFIG_HEADER([ares_config.h ares_build.h])
+AC_CONFIG_HEADERS([ares_config.h ares_build.h])
 AC_CONFIG_MACRO_DIR([m4])
 AM_MAINTAINER_MODE
 
@@ -19,7 +20,7 @@ CARES_CHECK_OPTION_WERROR
 CARES_CHECK_OPTION_CURLDEBUG
 CARES_CHECK_OPTION_SYMBOL_HIDING
 
-CARES_CHECK_PATH_SEPARATOR_REQUIRED
+XC_CHECK_PATH_SEPARATOR
 
 dnl SED is mandatory for configure process and libtool.
 dnl Set it now, allowing it to be changed later.
@@ -68,8 +69,6 @@ if test -f ${srcdir}/ares_build.h; then
   rm -f ${srcdir}/ares_build.h
 fi
 
-AM_INIT_AUTOMAKE
-
 dnl
 dnl Detect the canonical host and target build environment
 dnl
@@ -78,9 +77,9 @@ AC_CANONICAL_HOST
 dnl Get system canonical name
 AC_DEFINE_UNQUOTED(OS, "${host}", [cpu-machine-OS])
 
-CARES_CHECK_PROG_CC
-AM_PROG_CC_C_O
-AC_PROG_INSTALL
+XC_CHECK_PROG_CC
+
+AM_INIT_AUTOMAKE
 
 dnl This defines _ALL_SOURCE for AIX
 CARES_CHECK_AIX_ALL_SOURCE
@@ -98,60 +97,49 @@ case $host_os in
     ;;
 esac
 
-dnl support building of Windows DLLs
-AC_LIBTOOL_WIN32_DLL
+XC_LIBTOOL
 
-dnl force libtool to build static libraries with PIC on AMD64-Linux & FreeBSD
-AC_MSG_CHECKING([if arch-OS host is AMD64-Linux/FreeBSD (to build static libraries with PIC)])
-case $host in
-  x86_64*linux*|amd64*freebsd*|ia64*freebsd*)
-    AC_MSG_RESULT([yes])
-    with_pic=yes
-    ;;
-  *)
-    AC_MSG_RESULT([no])
-    ;;
-esac
+#
+# Automake conditionals based on libtool related checks
+#
 
-AC_MSG_CHECKING([if compiler is icc (to build with PIC)])
-case $CC in
-  icc | */icc)
-    AC_MSG_RESULT([yes])
-    with_pic=yes
-    ;;
-  *)
-    AC_MSG_RESULT([no])
-    ;;
-esac
+AM_CONDITIONAL([CARES_LT_SHLIB_USE_VERSION_INFO],
+  [test "x$xc_lt_shlib_use_version_info" = 'xyes'])
+AM_CONDITIONAL([CARES_LT_SHLIB_USE_NO_UNDEFINED],
+  [test "x$xc_lt_shlib_use_no_undefined" = 'xyes'])
+AM_CONDITIONAL([CARES_LT_SHLIB_USE_MIMPURE_TEXT],
+  [test "x$xc_lt_shlib_use_mimpure_text" = 'xyes'])
 
-dnl libtool setup
-AC_PROG_LIBTOOL
+#
+# Due to libtool and automake machinery limitations of not allowing
+# specifying separate CPPFLAGS or CFLAGS when compiling objects for
+# inclusion of these in shared or static libraries, we are forced to
+# build using separate configure runs for shared and static libraries
+# on systems where different CPPFLAGS or CFLAGS are mandatory in order
+# to compile objects for each kind of library. Notice that relying on
+# the '-DPIC' CFLAG that libtool provides is not valid given that the
+# user might for example choose to build static libraries with PIC.
+#
 
-AC_MSG_CHECKING([if we need CARES_BUILDING_LIBRARY])
-use_cppflag_cares_building_library="no"
-use_cppflag_cares_staticlib="no"
-CPPFLAG_CARES_STATICLIB=""
-case $host in
-  *-*-mingw*)
-    AC_MSG_RESULT(yes)
-    use_cppflag_cares_building_library="yes"
-    AC_MSG_CHECKING([if we need CARES_STATICLIB])
-    if test "X$enable_shared" = "Xno"
-    then
-      AC_MSG_RESULT(yes)
-      use_cppflag_cares_staticlib="yes"
-      CPPFLAG_CARES_STATICLIB="-DCARES_STATICLIB"
-    else
-      AC_MSG_RESULT(no)
-    fi
-    ;;
-  *)
-    AC_MSG_RESULT(no)
-    ;;
-esac
-AM_CONDITIONAL(USE_CPPFLAG_CARES_BUILDING_LIBRARY, test x$use_cppflag_cares_building_library = xyes)
-AM_CONDITIONAL(USE_CPPFLAG_CARES_STATICLIB, test x$use_cppflag_cares_staticlib = xyes)
-AC_SUBST(CPPFLAG_CARES_STATICLIB)
+#
+# Make our Makefile.am files use the staticlib CPPFLAG only when strictly
+# targeting a static library and not building its shared counterpart.
+#
+
+AM_CONDITIONAL([USE_CPPFLAG_CARES_STATICLIB],
+  [test "x$xc_lt_build_static_only" = 'xyes'])
+
+#
+# Make staticlib CPPFLAG variable and its definition visible in output
+# files unconditionally, providing an empty definition unless strictly
+# targeting a static library and not building its shared counterpart.
+#
+
+CPPFLAG_CARES_STATICLIB=
+if test "x$xc_lt_build_static_only" = 'xyes'; then
+  CPPFLAG_CARES_STATICLIB='-DCARES_STATICLIB'
+fi
+AC_SUBST([CPPFLAG_CARES_STATICLIB])
 
 dnl **********************************************************************
 dnl platform/compiler/architecture specific checks/flags
@@ -177,10 +165,8 @@ fi
 
 CARES_CHECK_COMPILER_HALT_ON_ERROR
 CARES_CHECK_COMPILER_ARRAY_SIZE_NEGATIVE
+CARES_CHECK_COMPILER_PROTOTYPE_MISMATCH
 CARES_CHECK_COMPILER_SYMBOL_HIDING
-
-CARES_CHECK_NO_UNDEFINED
-AM_CONDITIONAL(NO_UNDEFINED, test x$need_no_undefined = xyes)
 
 CARES_CHECK_CURLDEBUG
 AM_CONDITIONAL(CURLDEBUG, test x$want_curldebug = xyes)
@@ -861,6 +847,8 @@ squeeze LDFLAGS
 squeeze LIBS
 
 squeeze CARES_PRIVATE_LIBS
+
+XC_CHECK_BUILD_FLAGS
 
 AC_CONFIG_FILES([Makefile libcares.pc])
 AC_OUTPUT

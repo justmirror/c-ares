@@ -22,16 +22,16 @@ ACLOCAL_AMFLAGS = -I m4
 # $(top_srcdir) is for c-ares's ares_setup.h and other "c-ares-private" files
 
 if CURLDEBUG
-INCLUDES = -I$(top_builddir)/../include/curl \
-           -I$(top_builddir)/../include      \
-           -I$(top_srcdir)/../include        \
-           -I$(top_builddir)/../lib          \
-           -I$(top_srcdir)/../lib            \
-           -I$(top_builddir)                 \
-           -I$(top_srcdir)
+AM_CPPFLAGS = -I$(top_builddir)/../include/curl \
+              -I$(top_builddir)/../include      \
+              -I$(top_srcdir)/../include        \
+              -I$(top_builddir)/../lib          \
+              -I$(top_srcdir)/../lib            \
+              -I$(top_builddir)                 \
+              -I$(top_srcdir)
 else
-INCLUDES = -I$(top_builddir) \
-           -I$(top_srcdir)
+AM_CPPFLAGS = -I$(top_builddir) \
+              -I$(top_srcdir)
 endif
 
 lib_LTLIBRARIES = libcares.la
@@ -64,7 +64,7 @@ DISTCLEANFILES = ares_build.h
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = libcares.pc
 
-VER=-version-info 2:0:0
+CARES_VERSION_INFO = -version-info 3:0:1
 # This flag accepts an argument of the form current[:revision[:age]]. So,
 # passing -version-info 3:12:1 sets current to 3, revision to 12, and age to
 # 1.
@@ -93,40 +93,43 @@ VER=-version-info 2:0:0
 # set age to 0. (c:r:a=0)
 #
 
-if NO_UNDEFINED
-# The -no-undefined flag is crucial for this to build fine on some platforms
-UNDEF = -no-undefined
+AM_LDFLAGS =
+
+libcares_la_LDFLAGS_EXTRA =
+
+if CARES_LT_SHLIB_USE_VERSION_INFO
+libcares_la_LDFLAGS_EXTRA += $(CARES_VERSION_INFO)
 endif
 
-libcares_la_LDFLAGS = $(UNDEF) $(VER)
+if CARES_LT_SHLIB_USE_NO_UNDEFINED
+libcares_la_LDFLAGS_EXTRA += -no-undefined
+endif
+
+if CARES_LT_SHLIB_USE_MIMPURE_TEXT
+libcares_la_LDFLAGS_EXTRA += -mimpure-text
+endif
+
+libcares_la_LDFLAGS = $(AM_LDFLAGS) $(libcares_la_LDFLAGS_EXTRA)
 
 # Add -Werror if defined
 CFLAGS += @CARES_CFLAG_EXTRAS@
 
-CFLAG_CARES_SYMBOL_HIDING = @CFLAG_CARES_SYMBOL_HIDING@
-
-# For Windows build targets, when building or using static c-ares
 if USE_CPPFLAG_CARES_STATICLIB
-AM_CPPFLAGS = -DCARES_STATICLIB
-else
-AM_CPPFLAGS =
+AM_CPPFLAGS += $(CPPFLAG_CARES_STATICLIB)
 endif
+
+libcares_la_CFLAGS_EXTRA =
+
+libcares_la_CPPFLAGS_EXTRA = -DCARES_BUILDING_LIBRARY
 
 if DOING_CARES_SYMBOL_HIDING
-if USE_CPPFLAG_CARES_BUILDING_LIBRARY
-libcares_la_CPPFLAGS = $(AM_CPPFLAGS) -DCARES_SYMBOL_HIDING -DCARES_BUILDING_LIBRARY
-else
-libcares_la_CPPFLAGS = $(AM_CPPFLAGS) -DCARES_SYMBOL_HIDING
+libcares_la_CFLAGS_EXTRA += $(CFLAG_CARES_SYMBOL_HIDING)
+libcares_la_CPPFLAGS_EXTRA += -DCARES_SYMBOL_HIDING
 endif
-libcares_la_CFLAGS = $(AM_CFLAGS) $(CFLAG_CARES_SYMBOL_HIDING)
-else
-if USE_CPPFLAG_CARES_BUILDING_LIBRARY
-libcares_la_CPPFLAGS = $(AM_CPPFLAGS) -DCARES_BUILDING_LIBRARY
-else
-libcares_la_CPPFLAGS = $(AM_CPPFLAGS)
-endif
-libcares_la_CFLAGS = $(AM_CFLAGS)
-endif
+
+libcares_la_CFLAGS = $(AM_CFLAGS) $(libcares_la_CFLAGS_EXTRA)
+
+libcares_la_CPPFLAGS = $(AM_CPPFLAGS) $(libcares_la_CPPFLAGS_EXTRA)
 
 # Makefile.inc provides the CSOURCES and HHEADERS defines
 include Makefile.inc
