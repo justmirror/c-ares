@@ -55,7 +55,7 @@ EXTRA_DIST = AUTHORS CHANGES README.cares Makefile.inc Makefile.dj	   \
  Makefile.m32 Makefile.netware Makefile.msvc Makefile.Watcom $(man_MANS)   \
  config-win32.h RELEASE-NOTES libcares.pc.in buildconf get_ver.awk maketgz \
  TODO ares_build.h.in $(PDFPAGES) cares.rc README.msvc $(MSVCFILES)	   \
- $(CSOURCES) $(HHEADERS) config-dos.h acountry.1 adig.1 ahost.1
+ $(CSOURCES) $(HHEADERS) config-dos.h acountry.1 adig.1 ahost.1 INSTALL
 
 CLEANFILES = $(PDFPAGES) $(HTMLPAGES)
 
@@ -103,6 +103,31 @@ libcares_la_LDFLAGS = $(UNDEF) $(VER)
 # Add -Werror if defined
 CFLAGS += @CARES_CFLAG_EXTRAS@
 
+CFLAG_CARES_SYMBOL_HIDING = @CFLAG_CARES_SYMBOL_HIDING@
+
+# For Windows build targets, when building or using static c-ares
+if USE_CPPFLAG_CARES_STATICLIB
+AM_CPPFLAGS = -DCARES_STATICLIB
+else
+AM_CPPFLAGS =
+endif
+
+if DOING_CARES_SYMBOL_HIDING
+if USE_CPPFLAG_CARES_BUILDING_LIBRARY
+libcares_la_CPPFLAGS = $(AM_CPPFLAGS) -DCARES_SYMBOL_HIDING -DCARES_BUILDING_LIBRARY
+else
+libcares_la_CPPFLAGS = $(AM_CPPFLAGS) -DCARES_SYMBOL_HIDING
+endif
+libcares_la_CFLAGS = $(AM_CFLAGS) $(CFLAG_CARES_SYMBOL_HIDING)
+else
+if USE_CPPFLAG_CARES_BUILDING_LIBRARY
+libcares_la_CPPFLAGS = $(AM_CPPFLAGS) -DCARES_BUILDING_LIBRARY
+else
+libcares_la_CPPFLAGS = $(AM_CPPFLAGS)
+endif
+libcares_la_CFLAGS = $(AM_CFLAGS)
+endif
+
 # Makefile.inc provides the CSOURCES and HHEADERS defines
 include Makefile.inc
 
@@ -117,14 +142,17 @@ libcares_la_HEADERS = ares.h ares_version.h ares_dns.h \
 ahost_SOURCES = ahost.c $(SAMPLESOURCES) $(SAMPLEHEADERS)
 ahost_LDADD = $(top_builddir)/libcares.la
 ahost_CFLAGS = $(AM_CFLAGS)
+ahost_CPPFLAGS = $(AM_CPPFLAGS)
 
 adig_SOURCES = adig.c $(SAMPLESOURCES) $(SAMPLEHEADERS)
 adig_LDADD = $(top_builddir)/libcares.la
 adig_CFLAGS = $(AM_CFLAGS)
+adig_CPPFLAGS = $(AM_CPPFLAGS)
 
 acountry_SOURCES = acountry.c $(SAMPLESOURCES) $(SAMPLEHEADERS)
 acountry_LDADD = $(top_builddir)/libcares.la
 acountry_CFLAGS = $(AM_CFLAGS)
+acountry_CPPFLAGS = $(AM_CPPFLAGS)
 
 SOURCEDMANDIR = man3
 SOURCEDMANPAGES = ares_init.3
