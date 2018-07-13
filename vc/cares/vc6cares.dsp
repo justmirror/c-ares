@@ -198,11 +198,19 @@ SOURCE=..\..\ares_free_string.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\ares_getenv.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\ares_gethostbyaddr.c
 # End Source File
 # Begin Source File
 
 SOURCE=..\..\ares_gethostbyname.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\ares_getnameinfo.c
 # End Source File
 # Begin Source File
 
@@ -262,6 +270,10 @@ SOURCE=..\..\ares_parse_txt_reply.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\ares_platform.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\ares_process.c
 # End Source File
 # Begin Source File
@@ -279,6 +291,10 @@ SOURCE=..\..\ares_send.c
 # Begin Source File
 
 SOURCE=..\..\ares_strcasecmp.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\ares_strdup.c
 # End Source File
 # Begin Source File
 
@@ -334,6 +350,14 @@ SOURCE=..\..\ares_dns.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\ares_getenv.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\ares_iphlpapi.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\ares_ipv6.h
 # End Source File
 # Begin Source File
@@ -350,6 +374,10 @@ SOURCE=..\..\ares_nowarn.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\ares_platform.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\ares_private.h
 # End Source File
 # Begin Source File
@@ -358,7 +386,15 @@ SOURCE=..\..\ares_rules.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\ares_setup.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\ares_strcasecmp.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\ares_strdup.h
 # End Source File
 # Begin Source File
 
@@ -374,6 +410,10 @@ SOURCE=..\..\bitncmp.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\config-win32.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\inet_net_pton.h
 # End Source File
 # Begin Source File
@@ -383,6 +423,10 @@ SOURCE=..\..\inet_ntop.h
 # Begin Source File
 
 SOURCE=..\..\nameser.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\setup_once.h
 # End Source File
 # End Group
 # Begin Group "Resource Files"
