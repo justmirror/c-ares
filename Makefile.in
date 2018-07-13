@@ -163,10 +163,13 @@ AUTOCONF = @AUTOCONF@
 AUTOHEADER = @AUTOHEADER@
 AUTOMAKE = @AUTOMAKE@
 AWK = @AWK@
+CARES_CFLAG_EXTRAS = @CARES_CFLAG_EXTRAS@
 CARES_PRIVATE_LIBS = @CARES_PRIVATE_LIBS@
 CC = @CC@
 CCDEPMODE = @CCDEPMODE@
-CFLAGS = @CFLAGS@
+
+# Add -Werror if defined
+CFLAGS = @CFLAGS@ @CARES_CFLAG_EXTRAS@
 CPP = @CPP@
 CPPFLAGS = @CPPFLAGS@
 CURLDEBUG_FALSE = @CURLDEBUG_FALSE@
@@ -312,9 +315,10 @@ MSVCFILES = vc/vc6aws.dsw vc/acountry/vc6acountry.dsp vc/adig/vc6adig.dsp \
 # adig and ahost are just sample programs and thus not mentioned with the
 # regular sources and headers
 EXTRA_DIST = AUTHORS CHANGES README.cares Makefile.inc Makefile.dj	   \
- Makefile.m32 Makefile.netware Makefile.msvc $(man_MANS) $(MSVCFILES)	   \
+ Makefile.m32 Makefile.netware Makefile.msvc Makefile.Watcom $(man_MANS)   \
  config-win32.h RELEASE-NOTES libcares.pc.in buildconf get_ver.awk maketgz \
- TODO ares_build.h.in $(PDFPAGES) cares.rc README.msvc $(CSOURCES) $(HHEADERS)
+ TODO ares_build.h.in $(PDFPAGES) cares.rc README.msvc $(MSVCFILES)	   \
+ $(CSOURCES) $(HHEADERS) config-dos.h
 
 CLEANFILES = $(PDFPAGES) $(HTMLPAGES)
 DISTCLEANFILES = ares_build.h
