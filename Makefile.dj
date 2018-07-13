@@ -2,7 +2,7 @@
 # c-ares Makefile for djgpp/gcc/Watt-32.
 #   By Gisle Vanem <gvanem@broadpark.no> 2004.
 #
-# $Id: Makefile.dj,v 1.36 2009-09-07 10:01:17 giva Exp $
+# $Id$
 
 
 TOPDIR = ..

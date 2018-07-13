@@ -1,4 +1,4 @@
-/* $Id: ares_ipv6.h,v 1.9 2009-05-02 02:36:48 yangtse Exp $ */
+/* $Id$ */
 
 /* Copyright (C) 2005 by Dominick Meglio
  *
@@ -22,23 +22,14 @@
 #define PF_INET6 AF_INET6
 #endif
 
-#if !defined(HAVE_STRUCT_IN6_ADDR) && !defined(s6_addr)
-struct in6_addr {
-  union {
-    unsigned char _S6_u8[16];
-  } _S6_un;
-};
-#define s6_addr _S6_un._S6_u8
-#endif
-
 #ifndef HAVE_STRUCT_SOCKADDR_IN6
 struct sockaddr_in6
 {
-  unsigned short  sin6_family;
-  unsigned short  sin6_port;
-  unsigned long   sin6_flowinfo;
-  struct in6_addr sin6_addr;
-  unsigned int    sin6_scope_id;
+  unsigned short       sin6_family;
+  unsigned short       sin6_port;
+  unsigned long        sin6_flowinfo;
+  struct ares_in6_addr sin6_addr;
+  unsigned int         sin6_scope_id;
 };
 #endif
 

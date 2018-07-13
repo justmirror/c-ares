@@ -1,7 +1,7 @@
 # ***************************************************************************
 # *  Project: c-ares
 # *
-# * $Id: get_ver.awk,v 1.1 2008-02-27 01:51:40 gknauf Exp $
+# * $Id$
 # ***************************************************************************
 # awk script which fetches c-ares version number and string from input
 # file and writes them to STDOUT. Here you can get an awk version for Win32:

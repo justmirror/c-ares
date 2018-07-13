@@ -1,4 +1,4 @@
-/* $Id: ares_free_hostent.c,v 1.12 2009-11-09 12:56:50 yangtse Exp $ */
+/* $Id$ */
 
 /* Copyright 1998 by the Massachusetts Institute of Technology.
  *

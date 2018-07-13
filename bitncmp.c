@@ -1,4 +1,4 @@
-/* $Id: bitncmp.c,v 1.8 2009-11-02 11:55:54 yangtse Exp $ */
+/* $Id$ */
 
 /*
  * Copyright (c) 2004 by Internet Systems Consortium, Inc. ("ISC")

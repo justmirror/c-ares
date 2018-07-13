@@ -1,7 +1,7 @@
 #ifndef HEADER_CARES_LIBRARY_INIT_H
 #define HEADER_CARES_LIBRARY_INIT_H
 
-/* $Id: ares_library_init.h,v 1.5 2009-11-11 08:56:47 yangtse Exp $ */
+/* $Id$ */
 
 /* Copyright 1998 by the Massachusetts Institute of Technology.
  * Copyright (C) 2004-2009 by Daniel Stenberg

@@ -1,4 +1,4 @@
-/* $Id: ares_library_init.c,v 1.11 2009-11-11 08:56:47 yangtse Exp $ */
+/* $Id$ */
 
 /* Copyright 1998 by the Massachusetts Institute of Technology.
  * Copyright (C) 2004-2009 by Daniel Stenberg

@@ -1,4 +1,4 @@
-/* $Id: ares_llist.c,v 1.2 2009-11-02 11:55:53 yangtse Exp $ */
+/* $Id$ */
 
 /* Copyright 1998 by the Massachusetts Institute of Technology.
  *

@@ -1,4 +1,4 @@
-/* $Id: inet_ntop.c,v 1.12 2009-11-02 11:55:54 yangtse Exp $ */
+/* $Id$ */
 
 /* Copyright (c) 1996 by Internet Software Consortium.
  *
@@ -42,6 +42,7 @@
 #include <string.h>
 #include <stdlib.h>
 
+#include "ares.h"
 #include "ares_ipv6.h"
 #include "inet_ntop.h"
 

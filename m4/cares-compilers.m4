@@ -1,7 +1,7 @@
 #***************************************************************************
-# $Id: cares-compilers.m4,v 1.63 2009-11-16 23:01:37 yangtse Exp $
+# $Id$
 #
-# Copyright (C) 2009 by Daniel Stenberg et al
+# Copyright (C) 2009-2010 by Daniel Stenberg et al
 #
 # Permission to use, copy, modify, and distribute this software and its
 # documentation for any purpose and without fee is hereby granted, provided
@@ -16,7 +16,7 @@
 #***************************************************************************
 
 # File version for 'aclocal' use. Keep it a single number.
-# serial 63
+# serial 65
 
 
 dnl CARES_CHECK_COMPILER
@@ -40,6 +40,7 @@ AC_DEFUN([CARES_CHECK_COMPILER], [
   CARES_CHECK_COMPILER_HPUX_C
   CARES_CHECK_COMPILER_IBM_C
   CARES_CHECK_COMPILER_INTEL_C
+  CARES_CHECK_COMPILER_CLANG
   CARES_CHECK_COMPILER_GNU_C
   CARES_CHECK_COMPILER_LCC
   CARES_CHECK_COMPILER_SGI_MIPSPRO_C
@@ -62,6 +63,40 @@ AC_DEFUN([CARES_CHECK_COMPILER], [
 *** mailing list: http://cool.haxx.se/mailman/listinfo/c-ares/
 ***
 _EOF
+  fi
+])
+
+
+dnl CARES_CHECK_COMPILER_CLANG
+dnl -------------------------------------------------
+dnl Verify if compiler being used is clang.
+
+AC_DEFUN([CARES_CHECK_COMPILER_CLANG], [
+  AC_BEFORE([$0],[CARES_CHECK_COMPILER_GNU_C])dnl
+  AC_MSG_CHECKING([if compiler is clang])
+  CURL_CHECK_DEF([__clang__], [], [silent])
+  if test "$curl_cv_have_def___clang__" = "yes"; then
+    AC_MSG_RESULT([yes])
+    compiler_id="CLANG"
+    clangver=`$CC -dumpversion`
+    clangvhi=`echo $clangver | cut -d . -f1`
+    clangvlo=`echo $clangver | cut -d . -f2`
+    compiler_num=`(expr $clangvhi "*" 100 + $clangvlo) 2>/dev/null`
+    flags_dbg_all="-g -g0 -g1 -g2 -g3"
+    flags_dbg_all="$flags_dbg_all -ggdb"
+    flags_dbg_all="$flags_dbg_all -gstabs"
+    flags_dbg_all="$flags_dbg_all -gstabs+"
+    flags_dbg_all="$flags_dbg_all -gcoff"
+    flags_dbg_all="$flags_dbg_all -gxcoff"
+    flags_dbg_all="$flags_dbg_all -gdwarf-2"
+    flags_dbg_all="$flags_dbg_all -gvms"
+    flags_dbg_yes="-g"
+    flags_dbg_off="-g0"
+    flags_opt_all="-O -O0 -O1 -O2 -Os -O3 -O4"
+    flags_opt_yes="-Os"
+    flags_opt_off="-O0"
+  else
+    AC_MSG_RESULT([no])
   fi
 ])
 
@@ -96,6 +131,7 @@ dnl Verify if compiler being used is GNU C.
 
 AC_DEFUN([CARES_CHECK_COMPILER_GNU_C], [
   AC_REQUIRE([CARES_CHECK_COMPILER_INTEL_C])dnl
+  AC_REQUIRE([CARES_CHECK_COMPILER_CLANG])dnl
   AC_MSG_CHECKING([if compiler is GNU C])
   CURL_CHECK_DEF([__GNUC__], [], [silent])
   if test "$curl_cv_have_def___GNUC__" = "yes" &&
@@ -495,7 +531,8 @@ AC_DEFUN([CARES_SET_COMPILER_BASIC_OPTS], [
   #
   if test "$compiler_id" != "unknown"; then
     #
-    if test "$compiler_id" = "GNU_C"; then
+    if test "$compiler_id" = "GNU_C" ||
+      test "$compiler_id" = "CLANG"; then
       CARES_CONVERT_INCLUDE_TO_ISYSTEM
     fi
     #
@@ -505,6 +542,14 @@ AC_DEFUN([CARES_SET_COMPILER_BASIC_OPTS], [
     tmp_CFLAGS=""
     #
     case "$compiler_id" in
+        #
+      CLANG)
+        #
+        dnl Disable warnings for unused arguments, otherwise clang will
+        dnl warn about compile-time arguments used during link-time, like
+        dnl -O and -g and -pedantic.
+        tmp_CFLAGS="$tmp_CFLAGS -Qunused-arguments"
+        ;;
         #
       DEC_C)
         #
@@ -786,6 +831,36 @@ AC_DEFUN([CARES_SET_COMPILER_WARNING_OPTS], [
     #
     case "$compiler_id" in
         #
+      CLANG)
+        #
+        if test "$want_warnings" = "yes"; then
+          dnl All versions of clang support the same warnings as at least
+          dnl gcc 4.2.1 except -Wunused.
+          tmp_CFLAGS="$tmp_CFLAGS -pedantic"
+          tmp_CFLAGS="$tmp_CFLAGS -Wall -Wextra"
+          tmp_CFLAGS="$tmp_CFLAGS -Wpointer-arith -Wwrite-strings"
+          tmp_CFLAGS="$tmp_CFLAGS -Wshadow"
+          tmp_CFLAGS="$tmp_CFLAGS -Winline -Wnested-externs"
+          tmp_CFLAGS="$tmp_CFLAGS -Wmissing-declarations"
+          tmp_CFLAGS="$tmp_CFLAGS -Wmissing-prototypes"
+          tmp_CFLAGS="$tmp_CFLAGS -Wno-long-long"
+          tmp_CFLAGS="$tmp_CFLAGS -Wfloat-equal"
+          tmp_CFLAGS="$tmp_CFLAGS -Wno-multichar -Wsign-compare"
+          tmp_CFLAGS="$tmp_CFLAGS -Wundef"
+          tmp_CFLAGS="$tmp_CFLAGS -Wno-format-nonliteral"
+          tmp_CFLAGS="$tmp_CFLAGS -Wendif-labels -Wstrict-prototypes"
+          tmp_CFLAGS="$tmp_CFLAGS -Wdeclaration-after-statement"
+          tmp_CFLAGS="$tmp_CFLAGS -Wcast-align"
+          tmp_CFLAGS="$tmp_CFLAGS -Wno-system-headers"
+          tmp_CFLAGS="$tmp_CFLAGS -Wshorten-64-to-32"
+          #
+          dnl Only clang 1.1 or later
+          if test "$compiler_num" -ge "101"; then
+            tmp_CFLAGS="$tmp_CFLAGS -Wunused"
+          fi
+        fi
+        ;;
+        #
       DEC_C)
         #
         if test "$want_warnings" = "yes"; then
@@ -942,7 +1017,7 @@ AC_DEFUN([CARES_SET_COMPILER_WARNING_OPTS], [
         dnl Disable using EBP register in optimizations
         tmp_CFLAGS="$tmp_CFLAGS -fno-omit-frame-pointer"
         dnl Disable use of ANSI C aliasing rules in optimizations
-        tmp_CFLAGS="$tmp_CFLAGS -no-ansi-alias"
+        tmp_CFLAGS="$tmp_CFLAGS -fno-strict-aliasing"
         dnl Value-safe optimizations on floating-point data
         tmp_CFLAGS="$tmp_CFLAGS -fp-model precise"
         dnl Only icc 10.0 or later
@@ -1326,6 +1401,12 @@ AC_DEFUN([CARES_CHECK_COMPILER_SYMBOL_HIDING], [
   tmp_CFLAGS=""
   tmp_EXTERN=""
   case "$compiler_id" in
+    CLANG)
+      dnl All versions of clang support -fvisibility=
+      tmp_EXTERN="__attribute__ ((visibility (\"default\")))"
+      tmp_CFLAGS="-fvisibility=hidden"
+      supports_symbol_hiding="yes"
+      ;;
     GNU_C)
       dnl Only gcc 3.4 or later
       if test "$compiler_num" -ge "304"; then

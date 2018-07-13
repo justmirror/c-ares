@@ -1,7 +1,7 @@
 #ifndef __ARES_INET_NET_PTON_H
 #define __ARES_INET_NET_PTON_H
 
-/* $Id: inet_net_pton.h,v 1.6 2008-09-24 19:13:02 yangtse Exp $ */
+/* $Id$ */
 
 /* Copyright (C) 2005 by Daniel Stenberg
  *

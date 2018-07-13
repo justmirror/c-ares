@@ -1,7 +1,7 @@
 AC_PREREQ(2.57)
 
 dnl Version not hardcoded here. Fetched later from ares_version.h
-AC_INIT([c-ares], [1.7.0],
+AC_INIT([c-ares], [1.7.1],
   [c-ares mailing list => http://cool.haxx.se/mailman/listinfo/c-ares])
 
 CARES_OVERRIDE_AUTOCONF

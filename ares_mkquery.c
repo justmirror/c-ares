@@ -1,4 +1,4 @@
-/* $Id: ares_mkquery.c,v 1.17 2009-11-02 11:55:53 yangtse Exp $ */
+/* $Id$ */
 
 /* Copyright 1998 by the Massachusetts Institute of Technology.
  *

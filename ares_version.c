@@ -1,4 +1,4 @@
-/* $Id: ares_version.c,v 1.5 2009-11-02 11:55:53 yangtse Exp $ */
+/* $Id$ */
 
 #include "ares_setup.h"
 #include "ares.h"

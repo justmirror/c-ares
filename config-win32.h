@@ -1,7 +1,7 @@
 #ifndef __ARES_CONFIG_WIN32_H
 #define __ARES_CONFIG_WIN32_H
 
-/* $Id: config-win32.h,v 1.32 2009-10-27 16:38:42 yangtse Exp $ */
+/* $Id$ */
 
 /* Copyright (C) 2004 - 2008 by Daniel Stenberg et al
  *
@@ -84,6 +84,9 @@
 /* ---------------------------------------------------------------- */
 /*                             FUNCTIONS                            */
 /* ---------------------------------------------------------------- */
+
+/* Define if you have the closesocket function.  */
+#define HAVE_CLOSESOCKET 1
 
 /* Define if you have the gethostname function.  */
 #define HAVE_GETHOSTNAME 1
@@ -214,6 +217,16 @@
 #    define ssize_t int
 #  endif
 #endif
+
+/* ---------------------------------------------------------------- */
+/*                            TYPE SIZES                            */
+/* ---------------------------------------------------------------- */
+
+/* The size of `int', as computed by sizeof. */
+#define SIZEOF_INT 4
+
+/* The size of `short', as computed by sizeof. */
+#define SIZEOF_SHORT 2
 
 /* ---------------------------------------------------------------- */
 /*                          STRUCT RELATED                          */

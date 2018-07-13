@@ -1,7 +1,7 @@
-/* $Id: ares_process.c,v 1.79 2009-11-18 10:33:54 yangtse Exp $ */
+/* $Id$ */
 
 /* Copyright 1998 by the Massachusetts Institute of Technology.
- * Copyright (C) 2004-2009 by Daniel Stenberg
+ * Copyright (C) 2004-2010 by Daniel Stenberg
  *
  * Permission to use, copy, modify, and distribute this
  * software and its documentation for any purpose and without
@@ -92,11 +92,12 @@ static void skip_server(ares_channel channel, struct query *query,
                         int whichserver);
 static void next_server(ares_channel channel, struct query *query,
                         struct timeval *now);
-static int configure_socket(int s, ares_channel channel);
+static int configure_socket(ares_socket_t s, ares_channel channel);
 static int open_tcp_socket(ares_channel channel, struct server_state *server);
 static int open_udp_socket(ares_channel channel, struct server_state *server);
 static int same_questions(const unsigned char *qbuf, int qlen,
                           const unsigned char *abuf, int alen);
+static int same_address(struct sockaddr *sa, struct ares_addr *aa);
 static void end_query(ares_channel channel, struct query *query, int status,
                       unsigned char *abuf, int alen);
 
@@ -139,18 +140,28 @@ long ares__timeoffset(struct timeval *now,
 }
 
 
+/*
+ * generic process function
+ */
+static void processfds(ares_channel channel,
+                       fd_set *read_fds, ares_socket_t read_fd,
+                       fd_set *write_fds, ares_socket_t write_fd)
+{
+  struct timeval now = ares__tvnow();
+
+  write_tcp_data(channel, write_fds, write_fd, &now);
+  read_tcp_data(channel, read_fds, read_fd, &now);
+  read_udp_packets(channel, read_fds, read_fd, &now);
+  process_timeouts(channel, &now);
+  process_broken_connections(channel, &now);
+}
+
 /* Something interesting happened on the wire, or there was a timeout.
  * See what's up and respond accordingly.
  */
 void ares_process(ares_channel channel, fd_set *read_fds, fd_set *write_fds)
 {
-  struct timeval now = ares__tvnow();
-
-  write_tcp_data(channel, write_fds, ARES_SOCKET_BAD, &now);
-  read_tcp_data(channel, read_fds, ARES_SOCKET_BAD, &now);
-  read_udp_packets(channel, read_fds, ARES_SOCKET_BAD, &now);
-  process_timeouts(channel, &now);
-  process_broken_connections(channel, &now);
+  processfds(channel, read_fds, ARES_SOCKET_BAD, write_fds, ARES_SOCKET_BAD);
 }
 
 /* Something interesting happened on the wire, or there was a timeout.
@@ -161,12 +172,7 @@ void ares_process_fd(ares_channel channel,
                                                file descriptors */
                      ares_socket_t write_fd)
 {
-  struct timeval now = ares__tvnow();
-
-  write_tcp_data(channel, NULL, write_fd, &now);
-  read_tcp_data(channel, NULL, read_fd, &now);
-  read_udp_packets(channel, NULL, read_fd, &now);
-  process_timeouts(channel, &now);
+  processfds(channel, NULL, read_fd, NULL, write_fd);
 }
 
 
@@ -174,7 +180,8 @@ void ares_process_fd(ares_channel channel,
  * otherwise. This is mostly for HP-UX, which could return EAGAIN or
  * EWOULDBLOCK. See this man page
  *
- *      http://devrsrc1.external.hp.com/STKS/cgi-bin/man2html?manpage=/usr/share/man/man2.Z/send.2
+ * http://devrsrc1.external.hp.com/STKS/cgi-bin/man2html?
+ *     manpage=/usr/share/man/man2.Z/send.2
  */
 static int try_again(int errnum)
 {
@@ -428,8 +435,11 @@ static void read_udp_packets(ares_channel channel, fd_set *read_fds,
   ssize_t count;
   unsigned char buf[PACKETSZ + 1];
 #ifdef HAVE_RECVFROM
-  struct sockaddr_in from;
   ares_socklen_t fromlen;
+  union {
+    struct sockaddr_in  sa4;
+    struct sockaddr_in6 sa6;
+  } from;
 #endif
 
   if(!read_fds && (read_fd == ARES_SOCKET_BAD))
@@ -465,7 +475,10 @@ static void read_udp_packets(ares_channel channel, fd_set *read_fds,
        * packets as we can. */
       do {
 #ifdef HAVE_RECVFROM
-        fromlen = sizeof(from);
+        if (server->addr.family == AF_INET)
+          fromlen = sizeof(from.sa4);
+        else
+          fromlen = sizeof(from.sa6);
         count = (ssize_t)recvfrom(server->udp_socket, (void *)buf, sizeof(buf),
                                   0, (struct sockaddr *)&from, &fromlen);
 #else
@@ -476,10 +489,10 @@ static void read_udp_packets(ares_channel channel, fd_set *read_fds,
         else if (count <= 0)
           handle_error(channel, i, now);
 #ifdef HAVE_RECVFROM
-        else if (from.sin_addr.s_addr != server->addr.s_addr)
-          /* Address response came from did not match the address
-           * we sent the request to.  Someone may be attempting
-           * to perform a cache poisoning attack */
+        else if (!same_address((struct sockaddr *)&from, &server->addr))
+          /* The address the response comes from does not match
+           * the address we sent the request to. Someone may be
+           * attempting to perform a cache poisoning attack. */
           break;
 #endif
         else
@@ -802,8 +815,9 @@ void ares__send_query(ares_channel channel, struct query *query,
 }
 
 /*
- * setsocknonblock sets the given socket to either blocking or non-blocking mode
- * based on the 'nonblock' boolean argument. This function is highly portable.
+ * setsocknonblock sets the given socket to either blocking or non-blocking
+ * mode based on the 'nonblock' boolean argument. This function is highly
+ * portable.
  */
 static int setsocknonblock(ares_socket_t sockfd,    /* operate on this */
                     int nonblock   /* TRUE or FALSE */)
@@ -856,7 +870,7 @@ static int setsocknonblock(ares_socket_t sockfd,    /* operate on this */
 #endif
 }
 
-static int configure_socket(int s, ares_channel channel)
+static int configure_socket(ares_socket_t s, ares_channel channel)
 {
   setsocknonblock(s, TRUE);
 
@@ -886,10 +900,39 @@ static int open_tcp_socket(ares_channel channel, struct server_state *server)
 {
   ares_socket_t s;
   int opt;
-  struct sockaddr_in sockin;
+  ares_socklen_t salen;
+  union {
+    struct sockaddr_in  sa4;
+    struct sockaddr_in6 sa6;
+  } saddr;
+  struct sockaddr *sa;
+
+  switch (server->addr.family)
+    {
+      case AF_INET:
+        sa = (void *)&saddr.sa4;
+        salen = sizeof(saddr.sa4);
+        memset(sa, 0, salen);
+        saddr.sa4.sin_family = AF_INET;
+        saddr.sa4.sin_port = (unsigned short)(channel->tcp_port & 0xffff);
+        memcpy(&saddr.sa4.sin_addr, &server->addr.addrV4,
+               sizeof(server->addr.addrV4));
+        break;
+      case AF_INET6:
+        sa = (void *)&saddr.sa6;
+        salen = sizeof(saddr.sa6);
+        memset(sa, 0, salen);
+        saddr.sa6.sin6_family = AF_INET6;
+        saddr.sa6.sin6_port = (unsigned short)(channel->tcp_port & 0xffff);
+        memcpy(&saddr.sa6.sin6_addr, &server->addr.addrV6,
+               sizeof(server->addr.addrV6));
+        break;
+      default:
+        return -1;
+    }
 
   /* Acquire a socket. */
-  s = socket(AF_INET, SOCK_STREAM, 0);
+  s = socket(server->addr.family, SOCK_STREAM, 0);
   if (s == ARES_SOCKET_BAD)
     return -1;
 
@@ -902,10 +945,10 @@ static int open_tcp_socket(ares_channel channel, struct server_state *server)
 
 #ifdef TCP_NODELAY
   /*
-   * Disable the Nagle algorithm (only relevant for TCP sockets, and thus not in
-   * configure_socket). In general, in DNS lookups we're pretty much interested
-   * in firing off a single request and then waiting for a reply, so batching
-   * isn't very interesting in general.
+   * Disable the Nagle algorithm (only relevant for TCP sockets, and thus not
+   * in configure_socket). In general, in DNS lookups we're pretty much
+   * interested in firing off a single request and then waiting for a reply,
+   * so batching isn't very interesting in general.
    */
   opt = 1;
   if (setsockopt(s, IPPROTO_TCP, TCP_NODELAY,
@@ -917,11 +960,7 @@ static int open_tcp_socket(ares_channel channel, struct server_state *server)
 #endif
 
   /* Connect to the server. */
-  memset(&sockin, 0, sizeof(sockin));
-  sockin.sin_family = AF_INET;
-  sockin.sin_addr = server->addr;
-  sockin.sin_port = (unsigned short)(channel->tcp_port & 0xffff);
-  if (connect(s, (struct sockaddr *) &sockin, sizeof(sockin)) == -1)
+  if (connect(s, sa, salen) == -1)
     {
       int err = SOCKERRNO;
 
@@ -953,10 +992,39 @@ static int open_tcp_socket(ares_channel channel, struct server_state *server)
 static int open_udp_socket(ares_channel channel, struct server_state *server)
 {
   ares_socket_t s;
-  struct sockaddr_in sockin;
+  ares_socklen_t salen;
+  union {
+    struct sockaddr_in  sa4;
+    struct sockaddr_in6 sa6;
+  } saddr;
+  struct sockaddr *sa;
+
+  switch (server->addr.family)
+    {
+      case AF_INET:
+        sa = (void *)&saddr.sa4;
+        salen = sizeof(saddr.sa4);
+        memset(sa, 0, salen);
+        saddr.sa4.sin_family = AF_INET;
+        saddr.sa4.sin_port = (unsigned short)(channel->udp_port & 0xffff);
+        memcpy(&saddr.sa4.sin_addr, &server->addr.addrV4,
+               sizeof(server->addr.addrV4));
+        break;
+      case AF_INET6:
+        sa = (void *)&saddr.sa6;
+        salen = sizeof(saddr.sa6);
+        memset(sa, 0, salen);
+        saddr.sa6.sin6_family = AF_INET6;
+        saddr.sa6.sin6_port = (unsigned short)(channel->udp_port & 0xffff);
+        memcpy(&saddr.sa6.sin6_addr, &server->addr.addrV6,
+               sizeof(server->addr.addrV6));
+        break;
+      default:
+        return -1;
+    }
 
   /* Acquire a socket. */
-  s = socket(AF_INET, SOCK_DGRAM, 0);
+  s = socket(server->addr.family, SOCK_DGRAM, 0);
   if (s == ARES_SOCKET_BAD)
     return -1;
 
@@ -968,11 +1036,7 @@ static int open_udp_socket(ares_channel channel, struct server_state *server)
     }
 
   /* Connect to the server. */
-  memset(&sockin, 0, sizeof(sockin));
-  sockin.sin_family = AF_INET;
-  sockin.sin_addr = server->addr;
-  sockin.sin_port = (unsigned short)(channel->udp_port & 0xffff);
-  if (connect(s, (struct sockaddr *) &sockin, sizeof(sockin)) == -1)
+  if (connect(s, sa, salen) == -1)
     {
       int err = SOCKERRNO;
 
@@ -1077,6 +1141,34 @@ static int same_questions(const unsigned char *qbuf, int qlen,
         return 0;
     }
   return 1;
+}
+
+static int same_address(struct sockaddr *sa, struct ares_addr *aa)
+{
+  void *addr1;
+  void *addr2;
+
+  if (sa->sa_family == aa->family)
+    {
+      switch (aa->family)
+        {
+          case AF_INET:
+            addr1 = &aa->addrV4;
+            addr2 = &((struct sockaddr_in *)sa)->sin_addr;
+            if (memcmp(addr1, addr2, sizeof(aa->addrV4)) == 0)
+              return 1; /* match */
+            break;
+          case AF_INET6:
+            addr1 = &aa->addrV6;
+            addr2 = &((struct sockaddr_in6 *)sa)->sin6_addr;
+            if (memcmp(addr1, addr2, sizeof(aa->addrV6)) == 0)
+              return 1; /* match */
+            break;
+          default:
+            break;
+        }
+    }
+  return 0; /* different */
 }
 
 static void end_query (ares_channel channel, struct query *query, int status,

@@ -1,5 +1,5 @@
 #***************************************************************************
-# $Id: cares-functions.m4,v 1.39 2009-11-16 01:56:16 yangtse Exp $
+# $Id$
 #
 # Copyright (C) 2008 - 2009 by Daniel Stenberg et al
 #

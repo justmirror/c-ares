@@ -1,7 +1,7 @@
 #ifndef HEADER_CARES_SETUP_H
 #define HEADER_CARES_SETUP_H
 
-/* $Id: ares_setup.h,v 1.2 2009-11-14 18:51:37 yangtse Exp $ */
+/* $Id$ */
 
 /* Copyright (C) 2004 - 2009 by Daniel Stenberg et al
  *

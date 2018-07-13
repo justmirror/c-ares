@@ -1,4 +1,4 @@
-/* $Id: nameser.h,v 1.29 2008-09-17 01:02:57 yangtse Exp $ */
+/* $Id$ */
 
 #ifndef ARES_NAMESER_H
 #define ARES_NAMESER_H

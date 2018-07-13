@@ -1,6 +1,6 @@
-# $Id: Makefile.msvc,v 1.6 2009-11-27 05:24:44 yangtse Exp $
+# $Id$
 
-# Copyright (C) 2009 by Daniel Stenberg
+# Copyright (C) 2009-2010 by Daniel Stenberg
 #
 # Permission to use, copy, modify, and distribute this
 # software and its documentation for any purpose and without
@@ -103,6 +103,8 @@ CC_VERS_NUM = 90
 !ELSEIF "$(_NMAKE_VER)" == "9.00.30729.01"
 CC_VERS_NUM = 90
 !ELSEIF "$(_NMAKE_VER)" == "10.00.20506.01"
+CC_VERS_NUM = 100
+!ELSEIF "$(_NMAKE_VER)" == "10.00.21003.01"
 CC_VERS_NUM = 100
 !ELSE
 !  MESSAGE Unknown value for _NMAKE_VER macro: "$(_NMAKE_VER)"
@@ -222,13 +224,19 @@ PDBTYPE_CONSOLIDATE = /pdbtype:consolidate
 !UNDEF PDBTYPE_CONSOLIDATE
 !ENDIF
 
+!IF $(CC_VERS_NUM) <= 70
+RT_ERROR_CHECKING = /GZ
+!ELSE
+RT_ERROR_CHECKING = /RTCsu
+!ENDIF
+
 # ----------------------------
 # Assorted commands and flags
 # ----------------------------
 
 CC_CMD_REL = cl.exe /nologo $(RTLIB) /DNDEBUG /O2
-CC_CMD_DBG = cl.exe /nologo $(RTLIBD) /D_DEBUG /Od /Zi /GZ
-CC_CFLAGS  = $(CFLAGS) /I. /W3 /GX /FD
+CC_CMD_DBG = cl.exe /nologo $(RTLIBD) /D_DEBUG /Od /Zi $(RT_ERROR_CHECKING)
+CC_CFLAGS  = $(CFLAGS) /I. /W3 /EHsc /FD
 
 RC_CMD_REL = rc.exe /l 0x409 /d "NDEBUG"
 RC_CMD_DBG = rc.exe /l 0x409 /d "_DEBUG"

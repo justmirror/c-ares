@@ -1,6 +1,6 @@
 /* Copyright 1998 by the Massachusetts Institute of Technology.
  *
- * $Id: ahost.c,v 1.28 2009-11-10 18:41:03 yangtse Exp $
+ * $Id$
  *
  * Permission to use, copy, modify, and distribute this
  * software and its documentation for any purpose and without
@@ -69,7 +69,7 @@ int main(int argc, char **argv)
   fd_set read_fds, write_fds;
   struct timeval *tvp, tv;
   struct in_addr addr4;
-  struct in6_addr addr6;
+  struct ares_in6_addr addr6;
 
 #ifdef USE_WINSOCK
   WORD wVersionRequested = MAKEWORD(USE_WINSOCK,USE_WINSOCK);

@@ -1,5 +1,5 @@
 #***************************************************************************
-# $Id: cares-confopts.m4,v 1.8 2009-10-31 04:16:40 yangtse Exp $
+# $Id$
 #
 # Copyright (C) 2008 - 2009 by Daniel Stenberg et al
 #

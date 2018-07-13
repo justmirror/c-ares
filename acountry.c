@@ -1,5 +1,5 @@
 /*
- * $Id: acountry.c,v 1.18 2009-11-10 18:41:03 yangtse Exp $
+ * $Id$
  *
  * IP-address/hostname to country converter.
  *

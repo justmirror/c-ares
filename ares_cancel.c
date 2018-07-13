@@ -1,4 +1,4 @@
-/* $Id: ares_cancel.c,v 1.12 2009-11-02 11:55:53 yangtse Exp $ */
+/* $Id$ */
 
 /* Copyright (C) 2004 by Daniel Stenberg et al
  *

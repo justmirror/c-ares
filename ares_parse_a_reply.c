@@ -1,4 +1,4 @@
-/* $Id: ares_parse_a_reply.c,v 1.20 2009-11-23 01:24:17 yangtse Exp $ */
+/* $Id$ */
 
 /* Copyright 1998 by the Massachusetts Institute of Technology.
  *
