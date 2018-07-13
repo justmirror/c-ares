@@ -1,5 +1,10 @@
    Changelog for the c-ares project. Generated with git2changes.pl
 
+Version 1.9.1 (18 Jun 2012)
+
+Daniel Stenberg (18 Jun 2012)
+- RELEASE-NOTES: 1.9.1 coming up
+
 Version 1.9.0 (16 Jun 2012)
 
 Daniel Stenberg (16 Jun 2012)
@@ -3182,7 +3187,3 @@ Yang Tse (2 Feb 2007)
 - compiler warning fix
 
 - compiler warning fix
-
-Gisle Vanem (30 Jan 2007)
-- Support for OpenWatcom (Win32): It do have getpid(), but no
-  <sys/time.h>.

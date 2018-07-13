@@ -98,6 +98,7 @@ am__objects_1 = libcares_la-ares__close_sockets.lo \
 	libcares_la-ares_parse_naptr_reply.lo \
 	libcares_la-ares_parse_ns_reply.lo \
 	libcares_la-ares_parse_ptr_reply.lo \
+	libcares_la-ares_parse_soa_reply.lo \
 	libcares_la-ares_parse_srv_reply.lo \
 	libcares_la-ares_parse_txt_reply.lo \
 	libcares_la-ares_platform.lo libcares_la-ares_process.lo \
@@ -191,6 +192,7 @@ CFLAGS = @CFLAGS@ @CARES_CFLAG_EXTRAS@
 CFLAG_CARES_SYMBOL_HIDING = @CFLAG_CARES_SYMBOL_HIDING@
 CPP = @CPP@
 CPPFLAGS = @CPPFLAGS@
+CPPFLAG_CARES_STATICLIB = @CPPFLAG_CARES_STATICLIB@
 CURLDEBUG_FALSE = @CURLDEBUG_FALSE@
 CURLDEBUG_TRUE = @CURLDEBUG_TRUE@
 CYGPATH_W = @CYGPATH_W@
@@ -423,6 +425,7 @@ CSOURCES = ares__close_sockets.c	\
   ares_parse_naptr_reply.c		\
   ares_parse_ns_reply.c			\
   ares_parse_ptr_reply.c		\
+  ares_parse_soa_reply.c		\
   ares_parse_srv_reply.c		\
   ares_parse_txt_reply.c		\
   ares_platform.c			\
@@ -492,6 +495,7 @@ MANPAGES = ares_cancel.3		\
   ares_parse_naptr_reply.3		\
   ares_parse_ns_reply.3			\
   ares_parse_ptr_reply.3		\
+  ares_parse_soa_reply.3		\
   ares_parse_srv_reply.3		\
   ares_parse_txt_reply.3		\
   ares_process.3			\
@@ -531,6 +535,7 @@ HTMLPAGES = ares_cancel.html		\
   ares_parse_mx_reply.html		\
   ares_parse_ns_reply.html		\
   ares_parse_ptr_reply.html		\
+  ares_parse_soa_reply.html		\
   ares_parse_srv_reply.html		\
   ares_parse_txt_reply.html		\
   ares_process.html			\
@@ -570,6 +575,7 @@ PDFPAGES = ares_cancel.pdf		\
   ares_parse_mx_reply.pdf		\
   ares_parse_ns_reply.pdf		\
   ares_parse_ptr_reply.pdf		\
+  ares_parse_soa_reply.pdf		\
   ares_parse_srv_reply.pdf		\
   ares_parse_txt_reply.pdf		\
   ares_process.pdf			\
@@ -787,6 +793,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libcares_la-ares_parse_naptr_reply.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libcares_la-ares_parse_ns_reply.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libcares_la-ares_parse_ptr_reply.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libcares_la-ares_parse_soa_reply.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libcares_la-ares_parse_srv_reply.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libcares_la-ares_parse_txt_reply.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libcares_la-ares_platform.Plo@am__quote@
@@ -1028,6 +1035,13 @@ libcares_la-ares_parse_ptr_reply.lo: ares_parse_ptr_reply.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='ares_parse_ptr_reply.c' object='libcares_la-ares_parse_ptr_reply.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libcares_la_CPPFLAGS) $(CPPFLAGS) $(libcares_la_CFLAGS) $(CFLAGS) -c -o libcares_la-ares_parse_ptr_reply.lo `test -f 'ares_parse_ptr_reply.c' || echo '$(srcdir)/'`ares_parse_ptr_reply.c
+
+libcares_la-ares_parse_soa_reply.lo: ares_parse_soa_reply.c
+@am__fastdepCC_TRUE@	if $(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libcares_la_CPPFLAGS) $(CPPFLAGS) $(libcares_la_CFLAGS) $(CFLAGS) -MT libcares_la-ares_parse_soa_reply.lo -MD -MP -MF "$(DEPDIR)/libcares_la-ares_parse_soa_reply.Tpo" -c -o libcares_la-ares_parse_soa_reply.lo `test -f 'ares_parse_soa_reply.c' || echo '$(srcdir)/'`ares_parse_soa_reply.c; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/libcares_la-ares_parse_soa_reply.Tpo" "$(DEPDIR)/libcares_la-ares_parse_soa_reply.Plo"; else rm -f "$(DEPDIR)/libcares_la-ares_parse_soa_reply.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='ares_parse_soa_reply.c' object='libcares_la-ares_parse_soa_reply.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libcares_la_CPPFLAGS) $(CPPFLAGS) $(libcares_la_CFLAGS) $(CFLAGS) -c -o libcares_la-ares_parse_soa_reply.lo `test -f 'ares_parse_soa_reply.c' || echo '$(srcdir)/'`ares_parse_soa_reply.c
 
 libcares_la-ares_parse_srv_reply.lo: ares_parse_srv_reply.c
 @am__fastdepCC_TRUE@	if $(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libcares_la_CPPFLAGS) $(CPPFLAGS) $(libcares_la_CFLAGS) $(CFLAGS) -MT libcares_la-ares_parse_srv_reply.lo -MD -MP -MF "$(DEPDIR)/libcares_la-ares_parse_srv_reply.Tpo" -c -o libcares_la-ares_parse_srv_reply.lo `test -f 'ares_parse_srv_reply.c' || echo '$(srcdir)/'`ares_parse_srv_reply.c; \
