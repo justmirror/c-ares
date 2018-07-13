@@ -1,7 +1,7 @@
 AC_PREREQ(2.57)
 
 dnl Version not hardcoded here. Fetched later from ares_version.h
-AC_INIT([c-ares], [1.8.0],
+AC_INIT([c-ares], [1.9.0],
   [c-ares mailing list: http://cool.haxx.se/mailman/listinfo/c-ares])
 
 XC_OVR_ZZ50
@@ -130,6 +130,7 @@ AC_PROG_LIBTOOL
 AC_MSG_CHECKING([if we need CARES_BUILDING_LIBRARY])
 use_cppflag_cares_building_library="no"
 use_cppflag_cares_staticlib="no"
+CPPFLAG_CARES_STATICLIB=""
 case $host in
   *-*-mingw*)
     AC_MSG_RESULT(yes)
@@ -139,6 +140,7 @@ case $host in
     then
       AC_MSG_RESULT(yes)
       use_cppflag_cares_staticlib="yes"
+      CPPFLAG_CARES_STATICLIB="-DCARES_STATICLIB"
     else
       AC_MSG_RESULT(no)
     fi
@@ -149,6 +151,7 @@ case $host in
 esac
 AM_CONDITIONAL(USE_CPPFLAG_CARES_BUILDING_LIBRARY, test x$use_cppflag_cares_building_library = xyes)
 AM_CONDITIONAL(USE_CPPFLAG_CARES_STATICLIB, test x$use_cppflag_cares_staticlib = xyes)
+AC_SUBST(CPPFLAG_CARES_STATICLIB)
 
 dnl **********************************************************************
 dnl platform/compiler/architecture specific checks/flags

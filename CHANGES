@@ -1,5 +1,49 @@
    Changelog for the c-ares project. Generated with git2changes.pl
 
+Version 1.9.0 (16 Jun 2012)
+
+Daniel Stenberg (16 Jun 2012)
+- ares_version.h: next version is 1.9.0
+
+- [Marko Kreen brought this change]
+
+  ares_data.h: ARES_DATATYPE_SOA_REPLY is added in 1.9.0
+
+- RELEASE-NOTES: synced with 979bf951d
+  
+  Next release deemed to become 1.9.0 due to the new function
+
+- [Marko Kreen brought this change]
+
+  SOA parser added
+  
+  I need to do SOA queries, so here is a parser for them.
+  
+  - ares_soa_reply: new struct
+  - ares_malloc_data/ares_free_soa: ARES_DATATYPE_SOA_REPLY
+  - ares_parse_soa_reply: actual function
+
+Yang Tse (14 Jun 2012)
+- Kill compiler warning
+
+- Fix libcares.pc generation for static MingW* cross builds
+
+Daniel Stenberg (21 May 2012)
+- [Nick Alcock brought this change]
+
+  Fix UDP and TCP port byte order in saved options.
+  
+  The UDP and TCP port are stored in network byte order in the
+  ares_channeldata, but are passed in to ares_init_options() in host byte
+  order.  Thus we must return them from ares_save_options() in host byte
+  order too, or a duplicated channel will convert them again, leading to a
+  nonfunctional channel and a mysterious connection refused error from
+  ares_gethostbyname().  This breaks ares_dup(), thus the curl easy API
+  when c-ares is used by curl, and thus all the curl easy API's users.
+
+Yang Tse (28 Apr 2012)
+- version: start working on 1.8.1-DEV
+
 Version 1.8.0 (27 Apr 2012)
 
 Daniel Stenberg (27 Apr 2012)
@@ -3142,27 +3186,3 @@ Yang Tse (2 Feb 2007)
 Gisle Vanem (30 Jan 2007)
 - Support for OpenWatcom (Win32): It do have getpid(), but no
   <sys/time.h>.
-
-Yang Tse (29 Jan 2007)
-- fix compiler warning "discards qualifiers from pointer target type" in debug builds
-
-- sync with lib/setup_once.h
-
-Gunter Knauf (23 Jan 2007)
-- enabled build with libssh2; fixed copyright for new year..
-
-Gisle Vanem (11 Dec 2006)
-- ahost.exe needs getopt.obj.
-
-Yang Tse (25 Nov 2006)
-- Make sure RETSIGTYPE is properly defined
-
-- Define HAVE_SIGNAL_H, HAVE_SIG_ATOMIC_T and HAVE_SIG_ATOMIC_T_VOLATILE
-  as appropriate for platforms that don't have autotools support
-
-Daniel Stenberg (22 Nov 2006)
-- Michael Wallner fixed this problem: When I set domains in the options
-  struct, and there are domain/search entries in /etc/resolv.conf, the domains
-  of the options struct will be overridden.
-
-- Install ares_dns.h too
