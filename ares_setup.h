@@ -1,9 +1,9 @@
-#ifndef __ARES_SETUP_H
-#define __ARES_SETUP_H
+#ifndef HEADER_CARES_SETUP_H
+#define HEADER_CARES_SETUP_H
 
-/* $Id: setup.h,v 1.35 2008-11-28 23:12:11 danf Exp $ */
+/* $Id: ares_setup.h,v 1.2 2009-11-14 18:51:37 yangtse Exp $ */
 
-/* Copyright (C) 2004 - 2008 by Daniel Stenberg et al
+/* Copyright (C) 2004 - 2009 by Daniel Stenberg et al
  *
  * Permission to use, copy, modify, and distribute this software and its
  * documentation for any purpose and without fee is hereby granted, provided
@@ -30,7 +30,7 @@
  */
 
 #ifdef HAVE_CONFIG_H
-#include "config.h"
+#include "ares_config.h"
 #else
 
 #ifdef WIN32
@@ -38,6 +38,26 @@
 #endif
 
 #endif /* HAVE_CONFIG_H */
+
+/* ================================================================ */
+/* Definition of preprocessor macros/symbols which modify compiler  */
+/* behaviour or generated code characteristics must be done here,   */
+/* as appropriate, before any system header file is included. It is */
+/* also possible to have them defined in the config file included   */
+/* before this point. As a result of all this we frown inclusion of */
+/* system header files in our config files, avoid this at any cost. */
+/* ================================================================ */
+
+/*
+ * AIX 4.3 and newer needs _THREAD_SAFE defined to build
+ * proper reentrant code. Others may also need it.
+ */
+
+#ifdef NEED_THREAD_SAFE
+#  ifndef _THREAD_SAFE
+#    define _THREAD_SAFE
+#  endif
+#endif
 
 /*
  * Tru64 needs _REENTRANT set for a few function prototypes and
@@ -51,11 +71,34 @@
 #  endif
 #endif
 
+/* ================================================================ */
+/*  If you need to include a system header file for your platform,  */
+/*  please, do it beyond the point further indicated in this file.  */
+/* ================================================================ */
+
+/*
+ * c-ares external interface definitions are also used internally,
+ * and might also include required system header files to define them.
+ */
+
+#include <ares_build.h>
+
+/*
+ * Compile time sanity checks must also be done when building the library.
+ */
+
+#include <ares_rules.h>
+
+/* ================================================================= */
+/* No system header file shall be included in this file before this  */
+/* point. The only allowed ones are those included from ares_build.h */
+/* ================================================================= */
+
 /*
  * Include header files for windows builds before redefining anything.
  * Use this preproessor block only to include or exclude windows.h,
  * winsock2.h, ws2tcpip.h or winsock.h. Any other windows thing belongs
- * to any other further and independant block.  Under Cygwin things work
+ * to any other further and independent block.  Under Cygwin things work
  * just as under linux (e.g. <sys/socket.h>) and the winsock headers should
  * never be included when __CYGWIN__ is defined.  configure script takes
  * care of this, not defining HAVE_WINDOWS_H, HAVE_WINSOCK_H, HAVE_WINSOCK2_H,
@@ -101,12 +144,6 @@
 
 #ifndef HAVE_CONFIG_H
 
-#if defined(__DJGPP__) || (defined(__WATCOMC__) && (__WATCOMC__ >= 1240)) || \
-    defined(__POCC__)
-#else
-#define ssize_t int
-#endif
-
 #if !defined(HAVE_SYS_TIME_H) && !defined(_MSC_VER) && !defined(__WATCOMC__)
 #define HAVE_SYS_TIME_H
 #endif
@@ -121,8 +158,14 @@
 
 #endif /* HAVE_CONFIG_H */
 
+#ifdef __POCC__
+#  include <sys/types.h>
+#  include <unistd.h>
+#  define ESRCH 3
+#endif
+
 /*
- * Recent autoconf versions define these symbols in config.h. We don't
+ * Recent autoconf versions define these symbols in ares_config.h. We don't
  * want them (since they collide with the libcurl ones when we build
  *  --enable-debug) so we undef them again here.
  */
@@ -152,4 +195,4 @@
 #include "setup_once.h"
 #endif
 
-#endif /* __ARES_SETUP_H */
+#endif /* HEADER_CARES_SETUP_H */

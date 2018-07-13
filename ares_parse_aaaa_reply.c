@@ -1,6 +1,7 @@
-/* $Id: ares_parse_aaaa_reply.c,v 1.11 2008-09-17 01:02:57 yangtse Exp $ */
+/* $Id: ares_parse_aaaa_reply.c,v 1.16 2009-11-23 01:24:17 yangtse Exp $ */
 
-/* Copyright 2005 Dominick Meglio
+/* Copyright 1998 by the Massachusetts Institute of Technology.
+ * Copyright 2005 Dominick Meglio
  *
  * Permission to use, copy, modify, and distribute this
  * software and its documentation for any purpose and without
@@ -15,7 +16,7 @@
  * without express or implied warranty.
  */
 
-#include "setup.h"
+#include "ares_setup.h"
 
 #ifdef HAVE_SYS_SOCKET_H
 #  include <sys/socket.h>
@@ -44,14 +45,17 @@
 
 #include <stdlib.h>
 #include <string.h>
-#include <limits.h>
+#ifdef HAVE_LIMITS_H
+#  include <limits.h>
+#endif
+
 #include "ares.h"
 #include "ares_dns.h"
 #include "inet_net_pton.h"
 #include "ares_private.h"
 
 int ares_parse_aaaa_reply(const unsigned char *abuf, int alen,
-                          struct hostent **host, struct addr6ttl *addrttls,
+                          struct hostent **host, struct ares_addr6ttl *addrttls,
                           int *naddrttls)
 {
   unsigned int qdcount, ancount;
@@ -84,7 +88,7 @@ int ares_parse_aaaa_reply(const unsigned char *abuf, int alen,
 
   /* Expand the name from the question, and skip past the question. */
   aptr = abuf + HFIXEDSZ;
-  status = ares_expand_name(aptr, abuf, alen, &hostname, &len);
+  status = ares__expand_name_for_response(aptr, abuf, alen, &hostname, &len);
   if (status != ARES_SUCCESS)
     return status;
   if (aptr + len + QFIXEDSZ > abuf + alen)
@@ -123,7 +127,7 @@ int ares_parse_aaaa_reply(const unsigned char *abuf, int alen,
   for (i = 0; i < (int)ancount; i++)
     {
       /* Decode the RR up to the data field. */
-      status = ares_expand_name(aptr, abuf, alen, &rr_name, &len);
+      status = ares__expand_name_for_response(aptr, abuf, alen, &rr_name, &len);
       if (status != ARES_SUCCESS)
         break;
       aptr += len;
@@ -153,7 +157,7 @@ int ares_parse_aaaa_reply(const unsigned char *abuf, int alen,
             }
           if (naddrs < max_addr_ttls)
             {
-              struct addr6ttl * const at = &addrttls[naddrs];
+              struct ares_addr6ttl * const at = &addrttls[naddrs];
               if (aptr + sizeof(struct in6_addr) > abuf + alen)
               {
                 status = ARES_EBADRESP;
@@ -176,7 +180,8 @@ int ares_parse_aaaa_reply(const unsigned char *abuf, int alen,
           naliases++;
 
           /* Decode the RR data and replace the hostname with it. */
-          status = ares_expand_name(aptr, abuf, alen, &rr_data, &len);
+          status = ares__expand_name_for_response(aptr, abuf, alen, &rr_data,
+                                                  &len);
           if (status != ARES_SUCCESS)
             break;
           free(hostname);

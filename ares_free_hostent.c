@@ -1,4 +1,4 @@
-/* $Id: ares_free_hostent.c,v 1.10 2007-06-04 21:04:14 bagder Exp $ */
+/* $Id: ares_free_hostent.c,v 1.12 2009-11-09 12:56:50 yangtse Exp $ */
 
 /* Copyright 1998 by the Massachusetts Institute of Technology.
  *
@@ -15,10 +15,10 @@
  * without express or implied warranty.
  */
 
-#include "setup.h"
+#include "ares_setup.h"
 #include <stdlib.h>
 
-#if !defined(WIN32) || defined(WATT32)
+#ifdef HAVE_NETDB_H
 #include <netdb.h>
 #endif
 

@@ -1,20 +1,22 @@
 AC_PREREQ(2.57)
 
 dnl Version not hardcoded here. Fetched later from ares_version.h
-AC_INIT([c-ares], [1.6.0],
+AC_INIT([c-ares], [1.7.0],
   [c-ares mailing list => http://cool.haxx.se/mailman/listinfo/c-ares])
 
 CARES_OVERRIDE_AUTOCONF
 
 AC_CONFIG_SRCDIR([ares_ipv6.h])
-AM_CONFIG_HEADER([config.h])
+AM_CONFIG_HEADER([ares_config.h ares_build.h])
 AM_MAINTAINER_MODE
 
 CARES_CHECK_OPTION_DEBUG
 CARES_CHECK_OPTION_OPTIMIZE
 CARES_CHECK_OPTION_WARNINGS
+CARES_CHECK_OPTION_CURLDEBUG
+CARES_CHECK_OPTION_SYMBOL_HIDING
 
-CARES_CHECK_PATH_SEPARATOR
+CARES_CHECK_PATH_SEPARATOR_REQUIRED
 
 dnl SED is mandatory for configure process and libtool.
 dnl Set it now, allowing it to be changed later.
@@ -50,13 +52,18 @@ fi
 AC_SUBST([EGREP])
 
 dnl AR is mandatory for configure process and libtool.
-dnl This is target dependant, so check it as a tool.
+dnl This is target dependent, so check it as a tool.
 AC_PATH_TOOL([AR], [ar], [not_found],
   [$PATH:/usr/bin:/usr/local/bin])
 if test -z "$AR" || test "$AR" = "not_found"; then
   AC_MSG_ERROR([ar not found in PATH. Cannot continue without ar.])
 fi
 AC_SUBST([AR])
+
+dnl Remove non-configure distributed ares_build.h
+if test -f ${srcdir}/ares_build.h; then
+  rm -f ${srcdir}/ares_build.h
+fi
 
 dnl Fetch c-ares version from ares_version.h
 VERSION=`$SED -ne 's/^#define ARES_VERSION_STR "\(.*\)"/\1/p' ${srcdir}/ares_version.h`
@@ -80,6 +87,7 @@ dnl This defines _ALL_SOURCE for AIX
 CARES_CHECK_AIX_ALL_SOURCE
 
 dnl Our configure and build reentrant settings
+CARES_CONFIGURE_THREAD_SAFE
 CARES_CONFIGURE_REENTRANT
 
 dnl check for how to do large files
@@ -94,11 +102,6 @@ esac
 dnl support building of Windows DLLs
 AC_LIBTOOL_WIN32_DLL
 
-CARES_PROCESS_DEBUG_BUILD_OPTS
-
-AM_CONDITIONAL(DEBUGBUILD, test x$want_debug = xyes)
-AM_CONDITIONAL(CURLDEBUG, test x$want_debug = xyes)
-
 dnl force libtool to build static libraries with PIC on AMD64-Linux & FreeBSD
 AC_MSG_CHECKING([if arch-OS host is AMD64-Linux/FreeBSD (to build static libraries with PIC)])
 case $host in
@@ -111,20 +114,38 @@ case $host in
     ;;
 esac
 
+AC_MSG_CHECKING([if compiler is icc (to build with PIC)])
+case $CC in
+  icc | */icc)
+    AC_MSG_RESULT([yes])
+    with_pic=yes
+    ;;
+  *)
+    AC_MSG_RESULT([no])
+    ;;
+esac
+
 dnl libtool setup
 AC_PROG_LIBTOOL
 
-AC_MSG_CHECKING([if we need -no-undefined])
+AC_MSG_CHECKING([if we need CARES_BUILDING_LIBRARY])
 case $host in
-  *-*-cygwin* | *-*-mingw* | *-*-pw32* | *-*-cegcc*)
-    need_no_undefined=yes
+  *-*-mingw*)
+    AC_DEFINE(CARES_BUILDING_LIBRARY, 1, [when building c-ares library])
+    AC_MSG_RESULT(yes)
+    AC_MSG_CHECKING([if we need CARES_STATICLIB])
+    if test "X$enable_shared" = "Xno"
+    then
+      AC_DEFINE(CARES_STATICLIB, 1, [when not building a shared library])
+      AC_MSG_RESULT(yes)
+    else
+      AC_MSG_RESULT(no)
+    fi
     ;;
   *)
-    need_no_undefined=no
+    AC_MSG_RESULT(no)
     ;;
 esac
-AC_MSG_RESULT($need_no_undefined)
-AM_CONDITIONAL(NO_UNDEFINED, test x$need_no_undefined = xyes)
 
 dnl **********************************************************************
 dnl platform/compiler/architecture specific checks/flags
@@ -136,30 +157,27 @@ CARES_SET_COMPILER_DEBUG_OPTS
 CARES_SET_COMPILER_OPTIMIZE_OPTS
 CARES_SET_COMPILER_WARNING_OPTS
 
-case $host in
+if test "$compiler_id" = "INTEL_UNIX_C"; then
   #
-  x86_64*linux*|amd64*freebsd*|ia64*freebsd*)
-    #
-    if test "$compiler_id" = "INTEL_UNIX_C"; then
-      #
-      if test "$compiler_num" -ge "900" &&
-        test "$compiler_num" -lt "1000"; then
-        dnl icc 9.X specific
-        CFLAGS="$CFLAGS -i-dynamic"
-      fi
-      #
-      if test "$compiler_num" -ge "1000"; then
-        dnl icc 10.X or later
-        CFLAGS="$CFLAGS -shared-intel"
-      fi
-      #
-    fi
-    ;;
+  if test "$compiler_num" -ge "1000"; then
+    dnl icc 10.X or later
+    CFLAGS="$CFLAGS -shared-intel"
+  elif test "$compiler_num" -ge "900"; then
+    dnl icc 9.X specific
+    CFLAGS="$CFLAGS -i-dynamic"
+  fi
   #
-esac
+fi
 
-CURL_CHECK_COMPILER_HALT_ON_ERROR
-CURL_CHECK_COMPILER_ARRAY_SIZE_NEGATIVE
+CARES_CHECK_COMPILER_HALT_ON_ERROR
+CARES_CHECK_COMPILER_ARRAY_SIZE_NEGATIVE
+CARES_CHECK_COMPILER_SYMBOL_HIDING
+
+CARES_CHECK_NO_UNDEFINED
+AM_CONDITIONAL(NO_UNDEFINED, test x$need_no_undefined = xyes)
+
+CARES_CHECK_CURLDEBUG
+AM_CONDITIONAL(CURLDEBUG, test x$want_curldebug = xyes)
 
 dnl **********************************************************************
 dnl Compilation based checks should not be done before this point.
@@ -190,6 +208,8 @@ esac
 dnl **********************************************************************
 dnl Checks for libraries.
 dnl **********************************************************************
+
+CARES_CHECK_LIB_XNET
 
 dnl gethostbyname without lib or in the nsl lib?
 AC_CHECK_FUNC(gethostbyname,
@@ -345,8 +365,7 @@ if test "$ac_cv_lib_resolve_strcasecmp" = "$ac_cv_func_strcasecmp"; then
 fi
 ac_cv_func_strcasecmp="no"
 
-dnl socket lib?
-AC_CHECK_FUNC(connect, , [ AC_CHECK_LIB(socket, connect) ])
+CARES_CHECK_LIBS_CONNECT
 
 dnl **********************************************************************
 dnl In case that function clock_gettime with monotonic timer is available,
@@ -369,57 +388,9 @@ AC_HELP_STRING([--enable-libgcc],[use libgcc when linking]),
 )
 
 
-dnl Default is to try the thread-safe versions of a few functions
-OPT_THREAD=on
-
-dnl detect AIX 4.3 or later
-AC_MSG_CHECKING([AIX 4.3 or later])
-AC_PREPROC_IFELSE([
-#if defined(_AIX) && defined(_AIX43)
-printf("just fine");
-#else
-#error "this is not AIX 4.3 or later"
-#endif
-],
- [ AC_MSG_RESULT([yes])
-   RECENTAIX=yes
-   OPT_THREAD=off ],
- [ AC_MSG_RESULT([no]) ]
-)
-
-AC_ARG_ENABLE(thread,dnl
-AC_HELP_STRING([--disable-thread],[don't look for thread-safe functions])
-AC_HELP_STRING([--enable-thread],[look for thread-safe functions]),
-[ case "$enableval" in
-  no)
-    OPT_THREAD=off
-    AC_MSG_WARN(c-ares will not get built using thread-safe functions)
-    ;;
-  *)
-    ;;
-  esac
-]
-)
-
-if test X"$OPT_THREAD" = Xoff
-then
-  AC_DEFINE(DISABLED_THREADSAFE, 1,
-    [Set to explicitly specify we don't want to use thread-safe functions])
-fi
-
-dnl for recent AIX versions, we skip all the thread-safe checks above since
-dnl they claim a thread-safe libc using the standard API. But there are
-dnl some functions still not thread-safe. Check for these!
-
 dnl Let's hope this split URL remains working:
 dnl http://publibn.boulder.ibm.com/doc_link/en_US/a_doc_lib/aixprggd/ \
 dnl genprogc/thread_quick_ref.htm
-
-if test "x$RECENTAIX" = "xyes"; then
-
-  AC_DEFINE(_THREAD_SAFE, 1, [define this if you need it to compile thread-safe code])
-
-fi
 
 
 dnl **********************************************************************
@@ -430,6 +401,7 @@ dnl Checks for header files.
 AC_HEADER_STDC
 
 CURL_CHECK_HEADER_MALLOC
+CURL_CHECK_HEADER_MEMORY
 
 dnl check for a few basic system headers we need
 AC_CHECK_HEADERS(
@@ -440,14 +412,17 @@ AC_CHECK_HEADERS(
        sys/ioctl.h \
        sys/param.h \
        sys/uio.h \
+       assert.h \
        netdb.h \
        netinet/in.h \
        netinet/tcp.h \
        net/if.h \
        errno.h \
+       socket.h \
        strings.h \
        stdbool.h \
        time.h \
+       limits.h \
        arpa/nameser.h \
        arpa/nameser_compat.h \
        arpa/inet.h,
@@ -487,7 +462,9 @@ AC_HEADER_TIME
 CURL_CHECK_STRUCT_TIMEVAL
 
 AC_CHECK_SIZEOF(size_t)
+AC_CHECK_SIZEOF(int)
 AC_CHECK_SIZEOF(long)
+CARES_CONFIGURE_LONG
 AC_CHECK_SIZEOF(time_t)
 
 AC_CHECK_TYPE(long long,
@@ -523,8 +500,7 @@ AC_CHECK_TYPE([bool],[
 #endif
 ])
 
-# Check for socklen_t or equivalent
-CURL_CHECK_TYPE_SOCKLEN_T
+CARES_CONFIGURE_ARES_SOCKLEN_T
 
 TYPE_IN_ADDR_T
 
@@ -539,6 +515,9 @@ CURL_CHECK_FUNC_RECVFROM
 CURL_CHECK_FUNC_SEND
 CURL_CHECK_MSG_NOSIGNAL
 
+CARES_CHECK_FUNC_CLOSESOCKET
+CARES_CHECK_FUNC_CLOSESOCKET_CAMEL
+CARES_CHECK_FUNC_CONNECT
 CARES_CHECK_FUNC_FCNTL
 CARES_CHECK_FUNC_FREEADDRINFO
 CARES_CHECK_FUNC_GETADDRINFO
@@ -552,6 +531,7 @@ CARES_CHECK_FUNC_IOCTL
 CARES_CHECK_FUNC_IOCTLSOCKET
 CARES_CHECK_FUNC_IOCTLSOCKET_CAMEL
 CARES_CHECK_FUNC_SETSOCKOPT
+CARES_CHECK_FUNC_SOCKET
 CARES_CHECK_FUNC_STRCASECMP
 CARES_CHECK_FUNC_STRCMPI
 CARES_CHECK_FUNC_STRDUP
@@ -743,7 +723,7 @@ AC_CHECK_FUNCS([bitncmp \
   ],[
     AC_MSG_RESULT([yes])
     eval "ac_cv_func_$func=yes"
-    AC_DEFINE_UNQUOTED([AS_TR_CPP([HAVE_$func])], [1],
+    AC_DEFINE_UNQUOTED(AS_TR_CPP([HAVE_$func]), [1],
       [Define to 1 if you have the $func function.])
   ],[
     AC_MSG_RESULT([but still no])
@@ -876,6 +856,8 @@ fi
 
 CARES_CHECK_OPTION_NONBLOCKING
 CARES_CHECK_NONBLOCKING_SOCKET
+
+CARES_CONFIGURE_SYMBOL_HIDING
 
 CARES_PRIVATE_LIBS="$LIBS"
 AC_SUBST(CARES_PRIVATE_LIBS)

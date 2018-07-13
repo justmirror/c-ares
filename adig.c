@@ -1,6 +1,6 @@
 /* Copyright 1998 by the Massachusetts Institute of Technology.
  *
- * $Id: adig.c,v 1.36 2008-10-17 19:04:53 yangtse Exp $
+ * $Id: adig.c,v 1.43 2009-11-16 20:02:12 yangtse Exp $
  *
  * Permission to use, copy, modify, and distribute this
  * software and its documentation for any purpose and without
@@ -15,7 +15,7 @@
  * without express or implied warranty.
  */
 
-#include "setup.h"
+#include "ares_setup.h"
 
 #ifdef HAVE_SYS_SOCKET_H
 #  include <sys/socket.h>
@@ -82,6 +82,11 @@
 /* Mac OS X portability check */
 #ifndef T_SRV
 #define T_SRV 33 /* server selection */
+#endif
+
+/* AIX portability check */
+#ifndef T_NAPTR
+#define T_NAPTR 35 /* naming authority pointer */
 #endif
 
 struct nv {
@@ -152,13 +157,14 @@ static const char *opcodes[] = {
   "UPDATEA", "UPDATED", "UPDATEDA", "UPDATEM", "UPDATEMA",
   "ZONEINIT", "ZONEREF"
 };
-  struct in_addr inaddr;
 
 static const char *rcodes[] = {
   "NOERROR", "FORMERR", "SERVFAIL", "NXDOMAIN", "NOTIMP", "REFUSED",
   "(unknown)", "(unknown)", "(unknown)", "(unknown)", "(unknown)",
   "(unknown)", "(unknown)", "(unknown)", "(unknown)", "NOCHANGE"
 };
+
+static struct in_addr inaddr;
 
 static void callback(void *arg, int status, int timeouts,
                      unsigned char *abuf, int alen);
@@ -187,6 +193,13 @@ int main(int argc, char **argv)
   WSAStartup(wVersionRequested, &wsaData);
 #endif
 
+  status = ares_library_init(ARES_LIB_INIT_ALL);
+  if (status != ARES_SUCCESS)
+    {
+      fprintf(stderr, "ares_library_init: %s\n", ares_strerror(status));
+      return 1;
+    }
+
   options.flags = ARES_FLAG_NOCHECKRESP;
   options.servers = NULL;
   options.nservers = 0;
@@ -207,9 +220,10 @@ int main(int argc, char **argv)
               if (strcmp(flags[i].name, optarg) == 0)
                 break;
             }
-          if (i == nflags)
+          if (i < nflags)
+            options.flags |= flags[i].value;
+          else
             usage();
-          options.flags |= flags[i].value;
           break;
 
         case 's':
@@ -244,9 +258,10 @@ int main(int argc, char **argv)
               if (strcasecmp(classes[i].name, optarg) == 0)
                 break;
             }
-          if (i == nclasses)
+          if (i < nclasses)
+            dnsclass = classes[i].value;
+          else
             usage();
-          dnsclass = classes[i].value;
           break;
 
         case 't':
@@ -256,9 +271,10 @@ int main(int argc, char **argv)
               if (strcasecmp(types[i].name, optarg) == 0)
                 break;
             }
-          if (i == ntypes)
+          if (i < ntypes)
+            type = types[i].value;
+          else
             usage();
-          type = types[i].value;
           break;
 
         case 'T':
@@ -306,7 +322,7 @@ int main(int argc, char **argv)
     }
 
   /* Wait for all queries to complete. */
-  while (1)
+  for (;;)
     {
       FD_ZERO(&read_fds);
       FD_ZERO(&write_fds);
@@ -324,6 +340,8 @@ int main(int argc, char **argv)
     }
 
   ares_destroy(channel);
+
+  ares_library_cleanup();
 
 #ifdef USE_WINSOCK
   WSACleanup();
@@ -534,12 +552,20 @@ static const unsigned char *display_rr(const unsigned char *aptr,
       len = *p;
       if (p + len + 1 > aptr + dlen)
         return NULL;
-      printf("\t%.*s", (int)len, p + 1);
-      p += len + 1;
+      status = ares_expand_string(p, abuf, alen, &name.as_uchar, &len);
+      if (status != ARES_SUCCESS)
+        return NULL;
+      printf("\t%s", name.as_char);
+      ares_free_string(name.as_char);
+      p += len;
       len = *p;
       if (p + len + 1 > aptr + dlen)
         return NULL;
-      printf("\t%.*s", (int)len, p + 1);
+      status = ares_expand_string(p, abuf, alen, &name.as_uchar, &len);
+      if (status != ARES_SUCCESS)
+        return NULL;
+      printf("\t%s", name.as_char);
+      ares_free_string(name.as_char);
       break;
 
     case T_MINFO:
@@ -606,8 +632,12 @@ static const unsigned char *display_rr(const unsigned char *aptr,
           len = *p;
           if (p + len + 1 > aptr + dlen)
             return NULL;
-          printf("\t%.*s", (int)len, p + 1);
-          p += len + 1;
+          status = ares_expand_string(p, abuf, alen, &name.as_uchar, &len);
+          if (status != ARES_SUCCESS)
+            return NULL;
+          printf("\t%s", name.as_char);
+          ares_free_string(name.as_char);
+          p += len;
         }
       break;
 

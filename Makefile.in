@@ -42,10 +42,10 @@ host_triplet = @host@
 noinst_PROGRAMS = $(am__EXEEXT_1)
 DIST_COMMON = README $(am__configure_deps) $(libcares_la_HEADERS) \
 	$(srcdir)/Makefile.am $(srcdir)/Makefile.in \
-	$(srcdir)/Makefile.inc $(srcdir)/config.h.in \
-	$(srcdir)/libcares.pc.in $(top_srcdir)/configure AUTHORS NEWS \
-	TODO config.guess config.sub depcomp install-sh ltmain.sh \
-	missing mkinstalldirs
+	$(srcdir)/Makefile.inc $(srcdir)/ares_build.h.in \
+	$(srcdir)/ares_config.h.in $(srcdir)/libcares.pc.in \
+	$(top_srcdir)/configure AUTHORS NEWS TODO compile config.guess \
+	config.sub depcomp install-sh ltmain.sh missing mkinstalldirs
 subdir = .
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/cares-compilers.m4 \
@@ -53,14 +53,16 @@ am__aclocal_m4_deps = $(top_srcdir)/m4/cares-compilers.m4 \
 	$(top_srcdir)/m4/cares-functions.m4 \
 	$(top_srcdir)/m4/cares-override.m4 \
 	$(top_srcdir)/m4/cares-reentrant.m4 \
-	$(top_srcdir)/m4/cares-system.m4 $(top_srcdir)/acinclude.m4 \
-	$(top_srcdir)/configure.ac
+	$(top_srcdir)/m4/cares-system.m4 $(top_srcdir)/m4/libtool.m4 \
+	$(top_srcdir)/m4/ltoptions.m4 $(top_srcdir)/m4/ltsugar.m4 \
+	$(top_srcdir)/m4/ltversion.m4 $(top_srcdir)/m4/lt~obsolete.m4 \
+	$(top_srcdir)/acinclude.m4 $(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 am__CONFIG_DISTCLEAN_FILES = config.status config.cache config.log \
  configure.lineno configure.status.lineno
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
-CONFIG_HEADER = config.h
+CONFIG_HEADER = ares_config.h ares_build.h
 CONFIG_CLEAN_FILES = libcares.pc
 am__vpath_adj_setup = srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`;
 am__vpath_adj = case $$p in \
@@ -73,33 +75,47 @@ am__installdirs = "$(DESTDIR)$(libdir)" "$(DESTDIR)$(man3dir)" \
 libLTLIBRARIES_INSTALL = $(INSTALL)
 LTLIBRARIES = $(lib_LTLIBRARIES)
 libcares_la_LIBADD =
-am__objects_1 = ares_fds.lo ares_getsock.lo ares_process.lo \
-	ares_free_hostent.lo ares_query.lo ares__close_sockets.lo \
-	ares_free_string.lo ares_search.lo ares__get_hostent.lo \
-	ares_gethostbyaddr.lo ares_send.lo ares__read_line.lo \
-	ares_gethostbyname.lo ares_strerror.lo ares_cancel.lo \
-	ares_init.lo ares_timeout.lo ares_destroy.lo ares_mkquery.lo \
-	ares_version.lo ares_expand_name.lo ares_parse_a_reply.lo \
-	windows_port.lo ares_strdup.lo ares_expand_string.lo \
-	ares_parse_ptr_reply.lo ares_parse_aaaa_reply.lo \
-	ares_getnameinfo.lo inet_net_pton.lo bitncmp.lo inet_ntop.lo \
-	ares_writev.lo ares_parse_ns_reply.lo ares_llist.lo \
-	ares__timeval.lo ares_strcasecmp.lo
+am__objects_1 = ares__close_sockets.lo ares__get_hostent.lo \
+	ares__read_line.lo ares__timeval.lo ares_cancel.lo \
+	ares_data.lo ares_destroy.lo ares_expand_name.lo \
+	ares_expand_string.lo ares_fds.lo ares_free_hostent.lo \
+	ares_free_string.lo ares_gethostbyaddr.lo \
+	ares_gethostbyname.lo ares_getnameinfo.lo ares_getsock.lo \
+	ares_init.lo ares_library_init.lo ares_llist.lo \
+	ares_mkquery.lo ares_parse_a_reply.lo ares_parse_aaaa_reply.lo \
+	ares_parse_ns_reply.lo ares_parse_ptr_reply.lo \
+	ares_parse_srv_reply.lo ares_parse_txt_reply.lo \
+	ares_process.lo ares_query.lo ares_search.lo ares_send.lo \
+	ares_strcasecmp.lo ares_strdup.lo ares_strerror.lo \
+	ares_timeout.lo ares_version.lo ares_writev.lo bitncmp.lo \
+	inet_net_pton.lo inet_ntop.lo windows_port.lo
 am__objects_2 =
 am_libcares_la_OBJECTS = $(am__objects_1) $(am__objects_2)
 libcares_la_OBJECTS = $(am_libcares_la_OBJECTS)
-@DEBUGBUILD_FALSE@am__EXEEXT_1 = ahost$(EXEEXT) adig$(EXEEXT) \
-@DEBUGBUILD_FALSE@	acountry$(EXEEXT)
+@CURLDEBUG_FALSE@am__EXEEXT_1 = ahost$(EXEEXT) adig$(EXEEXT) \
+@CURLDEBUG_FALSE@	acountry$(EXEEXT)
 PROGRAMS = $(noinst_PROGRAMS)
-am_acountry_OBJECTS = acountry.$(OBJEXT) ares_getopt.$(OBJEXT)
+am__objects_3 = acountry-ares_getopt.$(OBJEXT) \
+	acountry-ares_strcasecmp.$(OBJEXT) \
+	acountry-inet_net_pton.$(OBJEXT) acountry-inet_ntop.$(OBJEXT)
+am_acountry_OBJECTS = acountry-acountry.$(OBJEXT) $(am__objects_3) \
+	$(am__objects_2)
 acountry_OBJECTS = $(am_acountry_OBJECTS)
-acountry_DEPENDENCIES = $(top_builddir)/$(lib_LTLIBRARIES)
-am_adig_OBJECTS = adig.$(OBJEXT) ares_getopt.$(OBJEXT)
+acountry_DEPENDENCIES = $(top_builddir)/libcares.la
+am__objects_4 = adig-ares_getopt.$(OBJEXT) \
+	adig-ares_strcasecmp.$(OBJEXT) adig-inet_net_pton.$(OBJEXT) \
+	adig-inet_ntop.$(OBJEXT)
+am_adig_OBJECTS = adig-adig.$(OBJEXT) $(am__objects_4) \
+	$(am__objects_2)
 adig_OBJECTS = $(am_adig_OBJECTS)
-adig_DEPENDENCIES = $(top_builddir)/$(lib_LTLIBRARIES)
-am_ahost_OBJECTS = ahost.$(OBJEXT) ares_getopt.$(OBJEXT)
+adig_DEPENDENCIES = $(top_builddir)/libcares.la
+am__objects_5 = ahost-ares_getopt.$(OBJEXT) \
+	ahost-ares_strcasecmp.$(OBJEXT) ahost-inet_net_pton.$(OBJEXT) \
+	ahost-inet_ntop.$(OBJEXT)
+am_ahost_OBJECTS = ahost-ahost.$(OBJEXT) $(am__objects_5) \
+	$(am__objects_2)
 ahost_OBJECTS = $(am_ahost_OBJECTS)
-ahost_DEPENDENCIES = $(top_builddir)/$(lib_LTLIBRARIES)
+ahost_DEPENDENCIES = $(top_builddir)/libcares.la
 DEFAULT_INCLUDES = 
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
@@ -154,43 +170,48 @@ CPPFLAGS = @CPPFLAGS@
 CURLDEBUG_FALSE = @CURLDEBUG_FALSE@
 CURLDEBUG_TRUE = @CURLDEBUG_TRUE@
 CYGPATH_W = @CYGPATH_W@
-DEBUGBUILD_FALSE = @DEBUGBUILD_FALSE@
-DEBUGBUILD_TRUE = @DEBUGBUILD_TRUE@
 DEFS = @DEFS@
 DEPDIR = @DEPDIR@
 DLLTOOL = @DLLTOOL@
 DSYMUTIL = @DSYMUTIL@
-ECHO = @ECHO@
+DUMPBIN = @DUMPBIN@
 ECHO_C = @ECHO_C@
 ECHO_N = @ECHO_N@
 ECHO_T = @ECHO_T@
 EGREP = @EGREP@
 EXEEXT = @EXEEXT@
+FGREP = @FGREP@
 GREP = @GREP@
 INSTALL_DATA = @INSTALL_DATA@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
 INSTALL_SCRIPT = @INSTALL_SCRIPT@
 INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
+LD = @LD@
 LDFLAGS = @LDFLAGS@
 LIBOBJS = @LIBOBJS@
 LIBS = @LIBS@
 LIBTOOL = @LIBTOOL@
+LIPO = @LIPO@
 LN_S = @LN_S@
 LTLIBOBJS = @LTLIBOBJS@
 MAINT = @MAINT@
 MAINTAINER_MODE_FALSE = @MAINTAINER_MODE_FALSE@
 MAINTAINER_MODE_TRUE = @MAINTAINER_MODE_TRUE@
 MAKEINFO = @MAKEINFO@
+NM = @NM@
 NMEDIT = @NMEDIT@
 NO_UNDEFINED_FALSE = @NO_UNDEFINED_FALSE@
 NO_UNDEFINED_TRUE = @NO_UNDEFINED_TRUE@
 OBJDUMP = @OBJDUMP@
 OBJEXT = @OBJEXT@
+OTOOL = @OTOOL@
+OTOOL64 = @OTOOL64@
 PACKAGE = @PACKAGE@
 PACKAGE_BUGREPORT = @PACKAGE_BUGREPORT@
 PACKAGE_NAME = @PACKAGE_NAME@
 PACKAGE_STRING = @PACKAGE_STRING@
 PACKAGE_TARNAME = @PACKAGE_TARNAME@
+PACKAGE_URL = @PACKAGE_URL@
 PACKAGE_VERSION = @PACKAGE_VERSION@
 PATH = @PATH@
 PATH_SEPARATOR = @PATH_SEPARATOR@
@@ -202,6 +223,7 @@ SHELL = @SHELL@
 STRIP = @STRIP@
 VERSION = @VERSION@
 ac_ct_CC = @ac_ct_CC@
+ac_ct_DUMPBIN = @ac_ct_DUMPBIN@
 am__fastdepCC_FALSE = @am__fastdepCC_FALSE@
 am__fastdepCC_TRUE = @am__fastdepCC_TRUE@
 am__include = @am__include@
@@ -233,6 +255,7 @@ libdir = @libdir@
 libexecdir = @libexecdir@
 localedir = @localedir@
 localstatedir = @localstatedir@
+lt_ECHO = @lt_ECHO@
 mandir = @mandir@
 mkdir_p = @mkdir_p@
 oldincludedir = @oldincludedir@
@@ -261,28 +284,38 @@ ACLOCAL_AMFLAGS = -I m4
 # only works when c-ares is built and linked with a similarly debug-build
 # libcurl, but we do this anyway for convenience.
 #
+# $(top_builddir)/../include/curl for generated curlbuild.h included from curl.h
 # $(top_builddir)/../include is for libcurl's generated curl/curlbuild.h file
-# $(top_builddir) is for c-ares's generated config.h file
-# $(top_srcdir) is for c-ares's lib/setup.h and other "c-ares-private" files
-@CURLDEBUG_TRUE@INCLUDES = -I$(top_builddir)/../include \
-@CURLDEBUG_TRUE@           -I$(top_builddir)            \
+# $(top_srcdir)/../include is for libcurl's external include files
+# $(top_builddir)/../lib is for libcurl's generated lib/curl_config.h file
+# $(top_srcdir)/../lib is for libcurl's lib/setup.h and other "private" files
+# $(top_builddir) is for c-ares's generated ares_config.h file
+# $(top_srcdir) is for c-ares's ares_setup.h and other "c-ares-private" files
+@CURLDEBUG_TRUE@INCLUDES = -I$(top_builddir)/../include/curl \
+@CURLDEBUG_TRUE@           -I$(top_builddir)/../include      \
+@CURLDEBUG_TRUE@           -I$(top_srcdir)/../include        \
+@CURLDEBUG_TRUE@           -I$(top_builddir)/../lib          \
+@CURLDEBUG_TRUE@           -I$(top_srcdir)/../lib            \
+@CURLDEBUG_TRUE@           -I$(top_builddir)                 \
 @CURLDEBUG_TRUE@           -I$(top_srcdir)
 
 lib_LTLIBRARIES = libcares.la
 man_MANS = $(MANPAGES)
-MSVCFILES = vc/vc.dsw vc/acountry/acountry.dsp vc/adig/adig.dsp \
- vc/ahost/ahost.dsp vc/areslib/areslib.dsp vc/areslib/areslib.dsw
+MSVCFILES = vc/vc6aws.dsw vc/acountry/vc6acountry.dsp vc/adig/vc6adig.dsp \
+ vc/ahost/vc6ahost.dsp vc/cares/vc6cares.dsp vc/cares/vc6cares.dsw
 
-@DEBUGBUILD_FALSE@PROGS = ahost adig acountry
-@DEBUGBUILD_TRUE@PROGS = 
+@CURLDEBUG_FALSE@PROGS = ahost adig acountry
+@CURLDEBUG_TRUE@PROGS = 
 
 # adig and ahost are just sample programs and thus not mentioned with the
 # regular sources and headers
 EXTRA_DIST = AUTHORS CHANGES README.cares Makefile.inc Makefile.dj	   \
- Makefile.m32 Makefile.netware Makefile.vc6 $(man_MANS) $(MSVCFILES)	   \
+ Makefile.m32 Makefile.netware Makefile.msvc $(man_MANS) $(MSVCFILES)	   \
  config-win32.h RELEASE-NOTES libcares.pc.in buildconf get_ver.awk maketgz \
- TODO
+ TODO ares_build.h.in $(PDFPAGES) cares.rc README.msvc
 
+CLEANFILES = $(PDFPAGES) $(HTMLPAGES)
+DISTCLEANFILES = ares_build.h
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = libcares.pc
 VER = -version-info 2:0:0
@@ -317,29 +350,184 @@ VER = -version-info 2:0:0
 # The -no-undefined flag is crucial for this to build fine on some platforms
 @NO_UNDEFINED_TRUE@UNDEF = -no-undefined
 libcares_la_LDFLAGS = $(UNDEF) $(VER)
-CSOURCES = ares_fds.c ares_getsock.c ares_process.c ares_free_hostent.c	\
-ares_query.c ares__close_sockets.c ares_free_string.c ares_search.c	\
-ares__get_hostent.c ares_gethostbyaddr.c ares_send.c ares__read_line.c	\
-ares_gethostbyname.c ares_strerror.c ares_cancel.c ares_init.c		\
-ares_timeout.c ares_destroy.c ares_mkquery.c ares_version.c		\
-ares_expand_name.c ares_parse_a_reply.c windows_port.c ares_strdup.c	\
-ares_expand_string.c ares_parse_ptr_reply.c ares_parse_aaaa_reply.c	\
-ares_getnameinfo.c inet_net_pton.c bitncmp.c inet_ntop.c ares_writev.c	\
-ares_parse_ns_reply.c ares_llist.c ares__timeval.c ares_strcasecmp.c
+CSOURCES = ares__close_sockets.c	\
+  ares__get_hostent.c			\
+  ares__read_line.c			\
+  ares__timeval.c			\
+  ares_cancel.c				\
+  ares_data.c				\
+  ares_destroy.c			\
+  ares_expand_name.c			\
+  ares_expand_string.c			\
+  ares_fds.c				\
+  ares_free_hostent.c			\
+  ares_free_string.c			\
+  ares_gethostbyaddr.c			\
+  ares_gethostbyname.c			\
+  ares_getnameinfo.c			\
+  ares_getsock.c			\
+  ares_init.c				\
+  ares_library_init.c			\
+  ares_llist.c				\
+  ares_mkquery.c			\
+  ares_parse_a_reply.c			\
+  ares_parse_aaaa_reply.c		\
+  ares_parse_ns_reply.c			\
+  ares_parse_ptr_reply.c		\
+  ares_parse_srv_reply.c		\
+  ares_parse_txt_reply.c		\
+  ares_process.c			\
+  ares_query.c				\
+  ares_search.c				\
+  ares_send.c				\
+  ares_strcasecmp.c			\
+  ares_strdup.c				\
+  ares_strerror.c			\
+  ares_timeout.c			\
+  ares_version.c			\
+  ares_writev.c				\
+  bitncmp.c				\
+  inet_net_pton.c			\
+  inet_ntop.c				\
+  windows_port.c
 
-HHEADERS = ares.h ares_private.h setup.h ares_dns.h ares_version.h          \
- nameser.h inet_net_pton.h inet_ntop.h ares_ipv6.h bitncmp.h setup_once.h   \
- ares_llist.h ares_strdup.h ares_strcasecmp.h ares_writev.h
+HHEADERS = ares.h			\
+  ares_build.h				\
+  ares_data.h				\
+  ares_dns.h				\
+  ares_ipv6.h				\
+  ares_library_init.h			\
+  ares_llist.h				\
+  ares_private.h			\
+  ares_rules.h				\
+  ares_strcasecmp.h			\
+  ares_strdup.h				\
+  ares_version.h			\
+  ares_writev.h				\
+  bitncmp.h				\
+  inet_net_pton.h			\
+  inet_ntop.h				\
+  nameser.h				\
+  ares_setup.h				\
+  setup_once.h
 
-MANPAGES = ares_destroy.3 ares_expand_name.3 ares_expand_string.3 ares_fds.3 \
- ares_free_hostent.3 ares_free_string.3 ares_gethostbyaddr.3		    \
- ares_gethostbyname.3 ares_init.3 ares_init_options.3 ares_mkquery.3	    \
- ares_parse_a_reply.3 ares_parse_ptr_reply.3 ares_process.3		    \
- ares_query.3 ares_search.3 ares_send.3 ares_strerror.3 ares_timeout.3	    \
- ares_version.3 ares_cancel.3 ares_parse_aaaa_reply.3 ares_getnameinfo.3    \
- ares_getsock.3 ares_parse_ns_reply.3 ares_dup.3 \
- ares_destroy_options.3 ares_save_options.3 ares_gethostbyname_file.3       \
- ares_set_socket_callback.3
+MANPAGES = ares_cancel.3		\
+  ares_destroy.3			\
+  ares_destroy_options.3		\
+  ares_dup.3				\
+  ares_expand_name.3			\
+  ares_expand_string.3			\
+  ares_fds.3				\
+  ares_free_data.3			\
+  ares_free_hostent.3			\
+  ares_free_string.3			\
+  ares_gethostbyaddr.3			\
+  ares_gethostbyname.3			\
+  ares_gethostbyname_file.3		\
+  ares_getnameinfo.3			\
+  ares_getsock.3			\
+  ares_init.3				\
+  ares_init_options.3			\
+  ares_library_cleanup.3		\
+  ares_library_init.3			\
+  ares_mkquery.3			\
+  ares_parse_a_reply.3			\
+  ares_parse_aaaa_reply.3		\
+  ares_parse_ns_reply.3			\
+  ares_parse_ptr_reply.3		\
+  ares_parse_srv_reply.3		\
+  ares_parse_txt_reply.3		\
+  ares_process.3			\
+  ares_query.3				\
+  ares_save_options.3			\
+  ares_search.3				\
+  ares_send.3				\
+  ares_set_socket_callback.3		\
+  ares_strerror.3			\
+  ares_timeout.3			\
+  ares_version.3
+
+HTMLPAGES = ares_cancel.html		\
+  ares_destroy.html			\
+  ares_destroy_options.html		\
+  ares_dup.html				\
+  ares_expand_name.html			\
+  ares_expand_string.html		\
+  ares_fds.html				\
+  ares_free_data.html			\
+  ares_free_hostent.html		\
+  ares_free_string.html			\
+  ares_gethostbyaddr.html		\
+  ares_gethostbyname.html		\
+  ares_gethostbyname_file.html		\
+  ares_getnameinfo.html			\
+  ares_getsock.html			\
+  ares_init.html			\
+  ares_init_options.html		\
+  ares_library_cleanup.html		\
+  ares_library_init.html		\
+  ares_mkquery.html			\
+  ares_parse_a_reply.html		\
+  ares_parse_aaaa_reply.html		\
+  ares_parse_ns_reply.html		\
+  ares_parse_ptr_reply.html		\
+  ares_parse_srv_reply.html		\
+  ares_parse_txt_reply.html		\
+  ares_process.html			\
+  ares_query.html			\
+  ares_save_options.html		\
+  ares_search.html			\
+  ares_send.html			\
+  ares_set_socket_callback.html		\
+  ares_strerror.html			\
+  ares_timeout.html			\
+  ares_version.html
+
+PDFPAGES = ares_cancel.pdf		\
+  ares_destroy.pdf			\
+  ares_destroy_options.pdf		\
+  ares_dup.pdf				\
+  ares_expand_name.pdf			\
+  ares_expand_string.pdf		\
+  ares_fds.pdf				\
+  ares_free_data.pdf			\
+  ares_free_hostent.pdf			\
+  ares_free_string.pdf			\
+  ares_gethostbyaddr.pdf		\
+  ares_gethostbyname.pdf		\
+  ares_gethostbyname_file.pdf		\
+  ares_getnameinfo.pdf			\
+  ares_getsock.pdf			\
+  ares_init.pdf				\
+  ares_init_options.pdf			\
+  ares_library_cleanup.pdf		\
+  ares_library_init.pdf			\
+  ares_mkquery.pdf			\
+  ares_parse_a_reply.pdf		\
+  ares_parse_aaaa_reply.pdf		\
+  ares_parse_ns_reply.pdf		\
+  ares_parse_ptr_reply.pdf		\
+  ares_parse_srv_reply.pdf		\
+  ares_parse_txt_reply.pdf		\
+  ares_process.pdf			\
+  ares_query.pdf			\
+  ares_save_options.pdf			\
+  ares_search.pdf			\
+  ares_send.pdf				\
+  ares_set_socket_callback.pdf		\
+  ares_strerror.pdf			\
+  ares_timeout.pdf			\
+  ares_version.pdf
+
+SAMPLESOURCES = ares_getopt.c		\
+  ares_strcasecmp.c			\
+  inet_net_pton.c			\
+  inet_ntop.c
+
+SAMPLEHEADERS = ares_getopt.h		\
+  ares_strcasecmp.h			\
+  inet_net_pton.h			\
+  inet_ntop.h
 
 
 # Makefile.inc provides the CSOURCES and HHEADERS defines
@@ -348,18 +536,27 @@ libcares_la_SOURCES = $(CSOURCES) $(HHEADERS)
 # where to install the c-ares headers
 libcares_ladir = $(includedir)
 # what headers to install on 'make install':
-libcares_la_HEADERS = ares.h ares_version.h ares_dns.h
-ahost_SOURCES = ahost.c ares_getopt.c ares_getopt.h
-ahost_LDADD = $(top_builddir)/$(lib_LTLIBRARIES)
-adig_SOURCES = adig.c ares_getopt.c ares_getopt.h
-adig_LDADD = $(top_builddir)/$(lib_LTLIBRARIES)
-acountry_SOURCES = acountry.c ares_getopt.c ares_getopt.h
-acountry_LDADD = $(top_builddir)/$(lib_LTLIBRARIES)
-all: config.h
+libcares_la_HEADERS = ares.h ares_version.h ares_dns.h \
+	ares_build.h ares_rules.h
+
+ahost_SOURCES = ahost.c $(SAMPLESOURCES) $(SAMPLEHEADERS)
+ahost_LDADD = $(top_builddir)/libcares.la
+ahost_CFLAGS = $(AM_CFLAGS)
+adig_SOURCES = adig.c $(SAMPLESOURCES) $(SAMPLEHEADERS)
+adig_LDADD = $(top_builddir)/libcares.la
+adig_CFLAGS = $(AM_CFLAGS)
+acountry_SOURCES = acountry.c $(SAMPLESOURCES) $(SAMPLEHEADERS)
+acountry_LDADD = $(top_builddir)/libcares.la
+acountry_CFLAGS = $(AM_CFLAGS)
+SOURCEDMANDIR = man3
+SOURCEDMANPAGES = ares_init.3
+MAN2HTML = roffit --mandir=. < $< >$@
+SUFFIXES = .3 .html
+all: ares_config.h ares_build.h
 	$(MAKE) $(AM_MAKEFLAGS) all-am
 
 .SUFFIXES:
-.SUFFIXES: .c .lo .o .obj
+.SUFFIXES: .3 .html .c .lo .o .obj .pdf
 am--refresh:
 	@:
 $(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ $(srcdir)/Makefile.am $(srcdir)/Makefile.inc $(am__configure_deps)
@@ -394,22 +591,32 @@ $(top_srcdir)/configure: @MAINTAINER_MODE_TRUE@ $(am__configure_deps)
 $(ACLOCAL_M4): @MAINTAINER_MODE_TRUE@ $(am__aclocal_m4_deps)
 	cd $(srcdir) && $(ACLOCAL) $(ACLOCAL_AMFLAGS)
 
-config.h: stamp-h1
+ares_config.h: stamp-h1
 	@if test ! -f $@; then \
 	  rm -f stamp-h1; \
 	  $(MAKE) stamp-h1; \
 	else :; fi
 
-stamp-h1: $(srcdir)/config.h.in $(top_builddir)/config.status
+stamp-h1: $(srcdir)/ares_config.h.in $(top_builddir)/config.status
 	@rm -f stamp-h1
-	cd $(top_builddir) && $(SHELL) ./config.status config.h
-$(srcdir)/config.h.in: @MAINTAINER_MODE_TRUE@ $(am__configure_deps) 
+	cd $(top_builddir) && $(SHELL) ./config.status ares_config.h
+$(srcdir)/ares_config.h.in: @MAINTAINER_MODE_TRUE@ $(am__configure_deps) 
 	cd $(top_srcdir) && $(AUTOHEADER)
 	rm -f stamp-h1
 	touch $@
 
+ares_build.h: stamp-h2
+	@if test ! -f $@; then \
+	  rm -f stamp-h2; \
+	  $(MAKE) stamp-h2; \
+	else :; fi
+
+stamp-h2: $(srcdir)/ares_build.h.in $(top_builddir)/config.status
+	@rm -f stamp-h2
+	cd $(top_builddir) && $(SHELL) ./config.status ares_build.h
+
 distclean-hdr:
-	-rm -f config.h stamp-h1
+	-rm -f ares_config.h stamp-h1 ares_build.h stamp-h2
 libcares.pc: $(top_builddir)/config.status $(srcdir)/libcares.pc.in
 	cd $(top_builddir) && $(SHELL) ./config.status $@
 install-libLTLIBRARIES: $(lib_LTLIBRARIES)
@@ -464,14 +671,27 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/acountry.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/adig.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ahost.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/acountry-acountry.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/acountry-ares_getopt.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/acountry-ares_strcasecmp.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/acountry-inet_net_pton.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/acountry-inet_ntop.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/adig-adig.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/adig-ares_getopt.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/adig-ares_strcasecmp.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/adig-inet_net_pton.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/adig-inet_ntop.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ahost-ahost.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ahost-ares_getopt.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ahost-ares_strcasecmp.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ahost-inet_net_pton.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ahost-inet_ntop.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ares__close_sockets.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ares__get_hostent.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ares__read_line.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ares__timeval.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ares_cancel.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ares_data.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ares_destroy.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ares_expand_name.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ares_expand_string.Plo@am__quote@
@@ -481,15 +701,17 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ares_gethostbyaddr.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ares_gethostbyname.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ares_getnameinfo.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ares_getopt.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ares_getsock.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ares_init.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ares_library_init.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ares_llist.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ares_mkquery.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ares_parse_a_reply.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ares_parse_aaaa_reply.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ares_parse_ns_reply.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ares_parse_ptr_reply.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ares_parse_srv_reply.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ares_parse_txt_reply.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ares_process.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ares_query.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ares_search.Plo@am__quote@
@@ -525,6 +747,216 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(LTCOMPILE) -c -o $@ $<
+
+acountry-acountry.o: acountry.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(acountry_CFLAGS) $(CFLAGS) -MT acountry-acountry.o -MD -MP -MF "$(DEPDIR)/acountry-acountry.Tpo" -c -o acountry-acountry.o `test -f 'acountry.c' || echo '$(srcdir)/'`acountry.c; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/acountry-acountry.Tpo" "$(DEPDIR)/acountry-acountry.Po"; else rm -f "$(DEPDIR)/acountry-acountry.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='acountry.c' object='acountry-acountry.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(acountry_CFLAGS) $(CFLAGS) -c -o acountry-acountry.o `test -f 'acountry.c' || echo '$(srcdir)/'`acountry.c
+
+acountry-acountry.obj: acountry.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(acountry_CFLAGS) $(CFLAGS) -MT acountry-acountry.obj -MD -MP -MF "$(DEPDIR)/acountry-acountry.Tpo" -c -o acountry-acountry.obj `if test -f 'acountry.c'; then $(CYGPATH_W) 'acountry.c'; else $(CYGPATH_W) '$(srcdir)/acountry.c'; fi`; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/acountry-acountry.Tpo" "$(DEPDIR)/acountry-acountry.Po"; else rm -f "$(DEPDIR)/acountry-acountry.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='acountry.c' object='acountry-acountry.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(acountry_CFLAGS) $(CFLAGS) -c -o acountry-acountry.obj `if test -f 'acountry.c'; then $(CYGPATH_W) 'acountry.c'; else $(CYGPATH_W) '$(srcdir)/acountry.c'; fi`
+
+acountry-ares_getopt.o: ares_getopt.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(acountry_CFLAGS) $(CFLAGS) -MT acountry-ares_getopt.o -MD -MP -MF "$(DEPDIR)/acountry-ares_getopt.Tpo" -c -o acountry-ares_getopt.o `test -f 'ares_getopt.c' || echo '$(srcdir)/'`ares_getopt.c; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/acountry-ares_getopt.Tpo" "$(DEPDIR)/acountry-ares_getopt.Po"; else rm -f "$(DEPDIR)/acountry-ares_getopt.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='ares_getopt.c' object='acountry-ares_getopt.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(acountry_CFLAGS) $(CFLAGS) -c -o acountry-ares_getopt.o `test -f 'ares_getopt.c' || echo '$(srcdir)/'`ares_getopt.c
+
+acountry-ares_getopt.obj: ares_getopt.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(acountry_CFLAGS) $(CFLAGS) -MT acountry-ares_getopt.obj -MD -MP -MF "$(DEPDIR)/acountry-ares_getopt.Tpo" -c -o acountry-ares_getopt.obj `if test -f 'ares_getopt.c'; then $(CYGPATH_W) 'ares_getopt.c'; else $(CYGPATH_W) '$(srcdir)/ares_getopt.c'; fi`; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/acountry-ares_getopt.Tpo" "$(DEPDIR)/acountry-ares_getopt.Po"; else rm -f "$(DEPDIR)/acountry-ares_getopt.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='ares_getopt.c' object='acountry-ares_getopt.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(acountry_CFLAGS) $(CFLAGS) -c -o acountry-ares_getopt.obj `if test -f 'ares_getopt.c'; then $(CYGPATH_W) 'ares_getopt.c'; else $(CYGPATH_W) '$(srcdir)/ares_getopt.c'; fi`
+
+acountry-ares_strcasecmp.o: ares_strcasecmp.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(acountry_CFLAGS) $(CFLAGS) -MT acountry-ares_strcasecmp.o -MD -MP -MF "$(DEPDIR)/acountry-ares_strcasecmp.Tpo" -c -o acountry-ares_strcasecmp.o `test -f 'ares_strcasecmp.c' || echo '$(srcdir)/'`ares_strcasecmp.c; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/acountry-ares_strcasecmp.Tpo" "$(DEPDIR)/acountry-ares_strcasecmp.Po"; else rm -f "$(DEPDIR)/acountry-ares_strcasecmp.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='ares_strcasecmp.c' object='acountry-ares_strcasecmp.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(acountry_CFLAGS) $(CFLAGS) -c -o acountry-ares_strcasecmp.o `test -f 'ares_strcasecmp.c' || echo '$(srcdir)/'`ares_strcasecmp.c
+
+acountry-ares_strcasecmp.obj: ares_strcasecmp.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(acountry_CFLAGS) $(CFLAGS) -MT acountry-ares_strcasecmp.obj -MD -MP -MF "$(DEPDIR)/acountry-ares_strcasecmp.Tpo" -c -o acountry-ares_strcasecmp.obj `if test -f 'ares_strcasecmp.c'; then $(CYGPATH_W) 'ares_strcasecmp.c'; else $(CYGPATH_W) '$(srcdir)/ares_strcasecmp.c'; fi`; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/acountry-ares_strcasecmp.Tpo" "$(DEPDIR)/acountry-ares_strcasecmp.Po"; else rm -f "$(DEPDIR)/acountry-ares_strcasecmp.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='ares_strcasecmp.c' object='acountry-ares_strcasecmp.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(acountry_CFLAGS) $(CFLAGS) -c -o acountry-ares_strcasecmp.obj `if test -f 'ares_strcasecmp.c'; then $(CYGPATH_W) 'ares_strcasecmp.c'; else $(CYGPATH_W) '$(srcdir)/ares_strcasecmp.c'; fi`
+
+acountry-inet_net_pton.o: inet_net_pton.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(acountry_CFLAGS) $(CFLAGS) -MT acountry-inet_net_pton.o -MD -MP -MF "$(DEPDIR)/acountry-inet_net_pton.Tpo" -c -o acountry-inet_net_pton.o `test -f 'inet_net_pton.c' || echo '$(srcdir)/'`inet_net_pton.c; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/acountry-inet_net_pton.Tpo" "$(DEPDIR)/acountry-inet_net_pton.Po"; else rm -f "$(DEPDIR)/acountry-inet_net_pton.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='inet_net_pton.c' object='acountry-inet_net_pton.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(acountry_CFLAGS) $(CFLAGS) -c -o acountry-inet_net_pton.o `test -f 'inet_net_pton.c' || echo '$(srcdir)/'`inet_net_pton.c
+
+acountry-inet_net_pton.obj: inet_net_pton.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(acountry_CFLAGS) $(CFLAGS) -MT acountry-inet_net_pton.obj -MD -MP -MF "$(DEPDIR)/acountry-inet_net_pton.Tpo" -c -o acountry-inet_net_pton.obj `if test -f 'inet_net_pton.c'; then $(CYGPATH_W) 'inet_net_pton.c'; else $(CYGPATH_W) '$(srcdir)/inet_net_pton.c'; fi`; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/acountry-inet_net_pton.Tpo" "$(DEPDIR)/acountry-inet_net_pton.Po"; else rm -f "$(DEPDIR)/acountry-inet_net_pton.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='inet_net_pton.c' object='acountry-inet_net_pton.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(acountry_CFLAGS) $(CFLAGS) -c -o acountry-inet_net_pton.obj `if test -f 'inet_net_pton.c'; then $(CYGPATH_W) 'inet_net_pton.c'; else $(CYGPATH_W) '$(srcdir)/inet_net_pton.c'; fi`
+
+acountry-inet_ntop.o: inet_ntop.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(acountry_CFLAGS) $(CFLAGS) -MT acountry-inet_ntop.o -MD -MP -MF "$(DEPDIR)/acountry-inet_ntop.Tpo" -c -o acountry-inet_ntop.o `test -f 'inet_ntop.c' || echo '$(srcdir)/'`inet_ntop.c; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/acountry-inet_ntop.Tpo" "$(DEPDIR)/acountry-inet_ntop.Po"; else rm -f "$(DEPDIR)/acountry-inet_ntop.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='inet_ntop.c' object='acountry-inet_ntop.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(acountry_CFLAGS) $(CFLAGS) -c -o acountry-inet_ntop.o `test -f 'inet_ntop.c' || echo '$(srcdir)/'`inet_ntop.c
+
+acountry-inet_ntop.obj: inet_ntop.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(acountry_CFLAGS) $(CFLAGS) -MT acountry-inet_ntop.obj -MD -MP -MF "$(DEPDIR)/acountry-inet_ntop.Tpo" -c -o acountry-inet_ntop.obj `if test -f 'inet_ntop.c'; then $(CYGPATH_W) 'inet_ntop.c'; else $(CYGPATH_W) '$(srcdir)/inet_ntop.c'; fi`; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/acountry-inet_ntop.Tpo" "$(DEPDIR)/acountry-inet_ntop.Po"; else rm -f "$(DEPDIR)/acountry-inet_ntop.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='inet_ntop.c' object='acountry-inet_ntop.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(acountry_CFLAGS) $(CFLAGS) -c -o acountry-inet_ntop.obj `if test -f 'inet_ntop.c'; then $(CYGPATH_W) 'inet_ntop.c'; else $(CYGPATH_W) '$(srcdir)/inet_ntop.c'; fi`
+
+adig-adig.o: adig.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(adig_CFLAGS) $(CFLAGS) -MT adig-adig.o -MD -MP -MF "$(DEPDIR)/adig-adig.Tpo" -c -o adig-adig.o `test -f 'adig.c' || echo '$(srcdir)/'`adig.c; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/adig-adig.Tpo" "$(DEPDIR)/adig-adig.Po"; else rm -f "$(DEPDIR)/adig-adig.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='adig.c' object='adig-adig.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(adig_CFLAGS) $(CFLAGS) -c -o adig-adig.o `test -f 'adig.c' || echo '$(srcdir)/'`adig.c
+
+adig-adig.obj: adig.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(adig_CFLAGS) $(CFLAGS) -MT adig-adig.obj -MD -MP -MF "$(DEPDIR)/adig-adig.Tpo" -c -o adig-adig.obj `if test -f 'adig.c'; then $(CYGPATH_W) 'adig.c'; else $(CYGPATH_W) '$(srcdir)/adig.c'; fi`; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/adig-adig.Tpo" "$(DEPDIR)/adig-adig.Po"; else rm -f "$(DEPDIR)/adig-adig.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='adig.c' object='adig-adig.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(adig_CFLAGS) $(CFLAGS) -c -o adig-adig.obj `if test -f 'adig.c'; then $(CYGPATH_W) 'adig.c'; else $(CYGPATH_W) '$(srcdir)/adig.c'; fi`
+
+adig-ares_getopt.o: ares_getopt.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(adig_CFLAGS) $(CFLAGS) -MT adig-ares_getopt.o -MD -MP -MF "$(DEPDIR)/adig-ares_getopt.Tpo" -c -o adig-ares_getopt.o `test -f 'ares_getopt.c' || echo '$(srcdir)/'`ares_getopt.c; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/adig-ares_getopt.Tpo" "$(DEPDIR)/adig-ares_getopt.Po"; else rm -f "$(DEPDIR)/adig-ares_getopt.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='ares_getopt.c' object='adig-ares_getopt.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(adig_CFLAGS) $(CFLAGS) -c -o adig-ares_getopt.o `test -f 'ares_getopt.c' || echo '$(srcdir)/'`ares_getopt.c
+
+adig-ares_getopt.obj: ares_getopt.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(adig_CFLAGS) $(CFLAGS) -MT adig-ares_getopt.obj -MD -MP -MF "$(DEPDIR)/adig-ares_getopt.Tpo" -c -o adig-ares_getopt.obj `if test -f 'ares_getopt.c'; then $(CYGPATH_W) 'ares_getopt.c'; else $(CYGPATH_W) '$(srcdir)/ares_getopt.c'; fi`; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/adig-ares_getopt.Tpo" "$(DEPDIR)/adig-ares_getopt.Po"; else rm -f "$(DEPDIR)/adig-ares_getopt.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='ares_getopt.c' object='adig-ares_getopt.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(adig_CFLAGS) $(CFLAGS) -c -o adig-ares_getopt.obj `if test -f 'ares_getopt.c'; then $(CYGPATH_W) 'ares_getopt.c'; else $(CYGPATH_W) '$(srcdir)/ares_getopt.c'; fi`
+
+adig-ares_strcasecmp.o: ares_strcasecmp.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(adig_CFLAGS) $(CFLAGS) -MT adig-ares_strcasecmp.o -MD -MP -MF "$(DEPDIR)/adig-ares_strcasecmp.Tpo" -c -o adig-ares_strcasecmp.o `test -f 'ares_strcasecmp.c' || echo '$(srcdir)/'`ares_strcasecmp.c; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/adig-ares_strcasecmp.Tpo" "$(DEPDIR)/adig-ares_strcasecmp.Po"; else rm -f "$(DEPDIR)/adig-ares_strcasecmp.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='ares_strcasecmp.c' object='adig-ares_strcasecmp.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(adig_CFLAGS) $(CFLAGS) -c -o adig-ares_strcasecmp.o `test -f 'ares_strcasecmp.c' || echo '$(srcdir)/'`ares_strcasecmp.c
+
+adig-ares_strcasecmp.obj: ares_strcasecmp.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(adig_CFLAGS) $(CFLAGS) -MT adig-ares_strcasecmp.obj -MD -MP -MF "$(DEPDIR)/adig-ares_strcasecmp.Tpo" -c -o adig-ares_strcasecmp.obj `if test -f 'ares_strcasecmp.c'; then $(CYGPATH_W) 'ares_strcasecmp.c'; else $(CYGPATH_W) '$(srcdir)/ares_strcasecmp.c'; fi`; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/adig-ares_strcasecmp.Tpo" "$(DEPDIR)/adig-ares_strcasecmp.Po"; else rm -f "$(DEPDIR)/adig-ares_strcasecmp.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='ares_strcasecmp.c' object='adig-ares_strcasecmp.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(adig_CFLAGS) $(CFLAGS) -c -o adig-ares_strcasecmp.obj `if test -f 'ares_strcasecmp.c'; then $(CYGPATH_W) 'ares_strcasecmp.c'; else $(CYGPATH_W) '$(srcdir)/ares_strcasecmp.c'; fi`
+
+adig-inet_net_pton.o: inet_net_pton.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(adig_CFLAGS) $(CFLAGS) -MT adig-inet_net_pton.o -MD -MP -MF "$(DEPDIR)/adig-inet_net_pton.Tpo" -c -o adig-inet_net_pton.o `test -f 'inet_net_pton.c' || echo '$(srcdir)/'`inet_net_pton.c; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/adig-inet_net_pton.Tpo" "$(DEPDIR)/adig-inet_net_pton.Po"; else rm -f "$(DEPDIR)/adig-inet_net_pton.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='inet_net_pton.c' object='adig-inet_net_pton.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(adig_CFLAGS) $(CFLAGS) -c -o adig-inet_net_pton.o `test -f 'inet_net_pton.c' || echo '$(srcdir)/'`inet_net_pton.c
+
+adig-inet_net_pton.obj: inet_net_pton.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(adig_CFLAGS) $(CFLAGS) -MT adig-inet_net_pton.obj -MD -MP -MF "$(DEPDIR)/adig-inet_net_pton.Tpo" -c -o adig-inet_net_pton.obj `if test -f 'inet_net_pton.c'; then $(CYGPATH_W) 'inet_net_pton.c'; else $(CYGPATH_W) '$(srcdir)/inet_net_pton.c'; fi`; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/adig-inet_net_pton.Tpo" "$(DEPDIR)/adig-inet_net_pton.Po"; else rm -f "$(DEPDIR)/adig-inet_net_pton.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='inet_net_pton.c' object='adig-inet_net_pton.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(adig_CFLAGS) $(CFLAGS) -c -o adig-inet_net_pton.obj `if test -f 'inet_net_pton.c'; then $(CYGPATH_W) 'inet_net_pton.c'; else $(CYGPATH_W) '$(srcdir)/inet_net_pton.c'; fi`
+
+adig-inet_ntop.o: inet_ntop.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(adig_CFLAGS) $(CFLAGS) -MT adig-inet_ntop.o -MD -MP -MF "$(DEPDIR)/adig-inet_ntop.Tpo" -c -o adig-inet_ntop.o `test -f 'inet_ntop.c' || echo '$(srcdir)/'`inet_ntop.c; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/adig-inet_ntop.Tpo" "$(DEPDIR)/adig-inet_ntop.Po"; else rm -f "$(DEPDIR)/adig-inet_ntop.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='inet_ntop.c' object='adig-inet_ntop.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(adig_CFLAGS) $(CFLAGS) -c -o adig-inet_ntop.o `test -f 'inet_ntop.c' || echo '$(srcdir)/'`inet_ntop.c
+
+adig-inet_ntop.obj: inet_ntop.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(adig_CFLAGS) $(CFLAGS) -MT adig-inet_ntop.obj -MD -MP -MF "$(DEPDIR)/adig-inet_ntop.Tpo" -c -o adig-inet_ntop.obj `if test -f 'inet_ntop.c'; then $(CYGPATH_W) 'inet_ntop.c'; else $(CYGPATH_W) '$(srcdir)/inet_ntop.c'; fi`; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/adig-inet_ntop.Tpo" "$(DEPDIR)/adig-inet_ntop.Po"; else rm -f "$(DEPDIR)/adig-inet_ntop.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='inet_ntop.c' object='adig-inet_ntop.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(adig_CFLAGS) $(CFLAGS) -c -o adig-inet_ntop.obj `if test -f 'inet_ntop.c'; then $(CYGPATH_W) 'inet_ntop.c'; else $(CYGPATH_W) '$(srcdir)/inet_ntop.c'; fi`
+
+ahost-ahost.o: ahost.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ahost_CFLAGS) $(CFLAGS) -MT ahost-ahost.o -MD -MP -MF "$(DEPDIR)/ahost-ahost.Tpo" -c -o ahost-ahost.o `test -f 'ahost.c' || echo '$(srcdir)/'`ahost.c; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/ahost-ahost.Tpo" "$(DEPDIR)/ahost-ahost.Po"; else rm -f "$(DEPDIR)/ahost-ahost.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='ahost.c' object='ahost-ahost.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ahost_CFLAGS) $(CFLAGS) -c -o ahost-ahost.o `test -f 'ahost.c' || echo '$(srcdir)/'`ahost.c
+
+ahost-ahost.obj: ahost.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ahost_CFLAGS) $(CFLAGS) -MT ahost-ahost.obj -MD -MP -MF "$(DEPDIR)/ahost-ahost.Tpo" -c -o ahost-ahost.obj `if test -f 'ahost.c'; then $(CYGPATH_W) 'ahost.c'; else $(CYGPATH_W) '$(srcdir)/ahost.c'; fi`; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/ahost-ahost.Tpo" "$(DEPDIR)/ahost-ahost.Po"; else rm -f "$(DEPDIR)/ahost-ahost.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='ahost.c' object='ahost-ahost.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ahost_CFLAGS) $(CFLAGS) -c -o ahost-ahost.obj `if test -f 'ahost.c'; then $(CYGPATH_W) 'ahost.c'; else $(CYGPATH_W) '$(srcdir)/ahost.c'; fi`
+
+ahost-ares_getopt.o: ares_getopt.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ahost_CFLAGS) $(CFLAGS) -MT ahost-ares_getopt.o -MD -MP -MF "$(DEPDIR)/ahost-ares_getopt.Tpo" -c -o ahost-ares_getopt.o `test -f 'ares_getopt.c' || echo '$(srcdir)/'`ares_getopt.c; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/ahost-ares_getopt.Tpo" "$(DEPDIR)/ahost-ares_getopt.Po"; else rm -f "$(DEPDIR)/ahost-ares_getopt.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='ares_getopt.c' object='ahost-ares_getopt.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ahost_CFLAGS) $(CFLAGS) -c -o ahost-ares_getopt.o `test -f 'ares_getopt.c' || echo '$(srcdir)/'`ares_getopt.c
+
+ahost-ares_getopt.obj: ares_getopt.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ahost_CFLAGS) $(CFLAGS) -MT ahost-ares_getopt.obj -MD -MP -MF "$(DEPDIR)/ahost-ares_getopt.Tpo" -c -o ahost-ares_getopt.obj `if test -f 'ares_getopt.c'; then $(CYGPATH_W) 'ares_getopt.c'; else $(CYGPATH_W) '$(srcdir)/ares_getopt.c'; fi`; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/ahost-ares_getopt.Tpo" "$(DEPDIR)/ahost-ares_getopt.Po"; else rm -f "$(DEPDIR)/ahost-ares_getopt.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='ares_getopt.c' object='ahost-ares_getopt.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ahost_CFLAGS) $(CFLAGS) -c -o ahost-ares_getopt.obj `if test -f 'ares_getopt.c'; then $(CYGPATH_W) 'ares_getopt.c'; else $(CYGPATH_W) '$(srcdir)/ares_getopt.c'; fi`
+
+ahost-ares_strcasecmp.o: ares_strcasecmp.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ahost_CFLAGS) $(CFLAGS) -MT ahost-ares_strcasecmp.o -MD -MP -MF "$(DEPDIR)/ahost-ares_strcasecmp.Tpo" -c -o ahost-ares_strcasecmp.o `test -f 'ares_strcasecmp.c' || echo '$(srcdir)/'`ares_strcasecmp.c; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/ahost-ares_strcasecmp.Tpo" "$(DEPDIR)/ahost-ares_strcasecmp.Po"; else rm -f "$(DEPDIR)/ahost-ares_strcasecmp.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='ares_strcasecmp.c' object='ahost-ares_strcasecmp.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ahost_CFLAGS) $(CFLAGS) -c -o ahost-ares_strcasecmp.o `test -f 'ares_strcasecmp.c' || echo '$(srcdir)/'`ares_strcasecmp.c
+
+ahost-ares_strcasecmp.obj: ares_strcasecmp.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ahost_CFLAGS) $(CFLAGS) -MT ahost-ares_strcasecmp.obj -MD -MP -MF "$(DEPDIR)/ahost-ares_strcasecmp.Tpo" -c -o ahost-ares_strcasecmp.obj `if test -f 'ares_strcasecmp.c'; then $(CYGPATH_W) 'ares_strcasecmp.c'; else $(CYGPATH_W) '$(srcdir)/ares_strcasecmp.c'; fi`; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/ahost-ares_strcasecmp.Tpo" "$(DEPDIR)/ahost-ares_strcasecmp.Po"; else rm -f "$(DEPDIR)/ahost-ares_strcasecmp.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='ares_strcasecmp.c' object='ahost-ares_strcasecmp.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ahost_CFLAGS) $(CFLAGS) -c -o ahost-ares_strcasecmp.obj `if test -f 'ares_strcasecmp.c'; then $(CYGPATH_W) 'ares_strcasecmp.c'; else $(CYGPATH_W) '$(srcdir)/ares_strcasecmp.c'; fi`
+
+ahost-inet_net_pton.o: inet_net_pton.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ahost_CFLAGS) $(CFLAGS) -MT ahost-inet_net_pton.o -MD -MP -MF "$(DEPDIR)/ahost-inet_net_pton.Tpo" -c -o ahost-inet_net_pton.o `test -f 'inet_net_pton.c' || echo '$(srcdir)/'`inet_net_pton.c; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/ahost-inet_net_pton.Tpo" "$(DEPDIR)/ahost-inet_net_pton.Po"; else rm -f "$(DEPDIR)/ahost-inet_net_pton.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='inet_net_pton.c' object='ahost-inet_net_pton.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ahost_CFLAGS) $(CFLAGS) -c -o ahost-inet_net_pton.o `test -f 'inet_net_pton.c' || echo '$(srcdir)/'`inet_net_pton.c
+
+ahost-inet_net_pton.obj: inet_net_pton.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ahost_CFLAGS) $(CFLAGS) -MT ahost-inet_net_pton.obj -MD -MP -MF "$(DEPDIR)/ahost-inet_net_pton.Tpo" -c -o ahost-inet_net_pton.obj `if test -f 'inet_net_pton.c'; then $(CYGPATH_W) 'inet_net_pton.c'; else $(CYGPATH_W) '$(srcdir)/inet_net_pton.c'; fi`; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/ahost-inet_net_pton.Tpo" "$(DEPDIR)/ahost-inet_net_pton.Po"; else rm -f "$(DEPDIR)/ahost-inet_net_pton.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='inet_net_pton.c' object='ahost-inet_net_pton.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ahost_CFLAGS) $(CFLAGS) -c -o ahost-inet_net_pton.obj `if test -f 'inet_net_pton.c'; then $(CYGPATH_W) 'inet_net_pton.c'; else $(CYGPATH_W) '$(srcdir)/inet_net_pton.c'; fi`
+
+ahost-inet_ntop.o: inet_ntop.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ahost_CFLAGS) $(CFLAGS) -MT ahost-inet_ntop.o -MD -MP -MF "$(DEPDIR)/ahost-inet_ntop.Tpo" -c -o ahost-inet_ntop.o `test -f 'inet_ntop.c' || echo '$(srcdir)/'`inet_ntop.c; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/ahost-inet_ntop.Tpo" "$(DEPDIR)/ahost-inet_ntop.Po"; else rm -f "$(DEPDIR)/ahost-inet_ntop.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='inet_ntop.c' object='ahost-inet_ntop.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ahost_CFLAGS) $(CFLAGS) -c -o ahost-inet_ntop.o `test -f 'inet_ntop.c' || echo '$(srcdir)/'`inet_ntop.c
+
+ahost-inet_ntop.obj: inet_ntop.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ahost_CFLAGS) $(CFLAGS) -MT ahost-inet_ntop.obj -MD -MP -MF "$(DEPDIR)/ahost-inet_ntop.Tpo" -c -o ahost-inet_ntop.obj `if test -f 'inet_ntop.c'; then $(CYGPATH_W) 'inet_ntop.c'; else $(CYGPATH_W) '$(srcdir)/inet_ntop.c'; fi`; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/ahost-inet_ntop.Tpo" "$(DEPDIR)/ahost-inet_ntop.Po"; else rm -f "$(DEPDIR)/ahost-inet_ntop.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='inet_ntop.c' object='ahost-inet_ntop.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ahost_CFLAGS) $(CFLAGS) -c -o ahost-inet_ntop.obj `if test -f 'inet_ntop.c'; then $(CYGPATH_W) 'inet_ntop.c'; else $(CYGPATH_W) '$(srcdir)/inet_ntop.c'; fi`
 
 mostlyclean-libtool:
 	-rm -f *.lo
@@ -625,11 +1057,11 @@ ID: $(HEADERS) $(SOURCES) $(LISP) $(TAGS_FILES)
 	mkid -fID $$unique
 tags: TAGS
 
-TAGS:  $(HEADERS) $(SOURCES) config.h.in $(TAGS_DEPENDENCIES) \
+TAGS:  $(HEADERS) $(SOURCES) ares_config.h.in ares_build.h.in $(TAGS_DEPENDENCIES) \
 		$(TAGS_FILES) $(LISP)
 	tags=; \
 	here=`pwd`; \
-	list='$(SOURCES) $(HEADERS) config.h.in $(LISP) $(TAGS_FILES)'; \
+	list='$(SOURCES) $(HEADERS) ares_config.h.in ares_build.h.in $(LISP) $(TAGS_FILES)'; \
 	unique=`for i in $$list; do \
 	    if test -f "$$i"; then echo $$i; else echo $(srcdir)/$$i; fi; \
 	  done | \
@@ -641,11 +1073,11 @@ TAGS:  $(HEADERS) $(SOURCES) config.h.in $(TAGS_DEPENDENCIES) \
 	    $$tags $$unique; \
 	fi
 ctags: CTAGS
-CTAGS:  $(HEADERS) $(SOURCES) config.h.in $(TAGS_DEPENDENCIES) \
+CTAGS:  $(HEADERS) $(SOURCES) ares_config.h.in ares_build.h.in $(TAGS_DEPENDENCIES) \
 		$(TAGS_FILES) $(LISP)
 	tags=; \
 	here=`pwd`; \
-	list='$(SOURCES) $(HEADERS) config.h.in $(LISP) $(TAGS_FILES)'; \
+	list='$(SOURCES) $(HEADERS) ares_config.h.in ares_build.h.in $(LISP) $(TAGS_FILES)'; \
 	unique=`for i in $$list; do \
 	    if test -f "$$i"; then echo $$i; else echo $(srcdir)/$$i; fi; \
 	  done | \
@@ -666,7 +1098,7 @@ distclean-tags:
 distdir: $(DISTFILES)
 	$(am__remove_distdir)
 	mkdir $(distdir)
-	$(mkdir_p) $(distdir)/. $(distdir)/m4 $(distdir)/vc $(distdir)/vc/acountry $(distdir)/vc/adig $(distdir)/vc/ahost $(distdir)/vc/areslib
+	$(mkdir_p) $(distdir)/. $(distdir)/m4 $(distdir)/vc $(distdir)/vc/acountry $(distdir)/vc/adig $(distdir)/vc/ahost $(distdir)/vc/cares
 	@srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`; \
 	topsrcdirstrip=`echo "$(top_srcdir)" | sed 's|.|.|g'`; \
 	list='$(DISTFILES)'; for file in $$list; do \
@@ -796,7 +1228,7 @@ distcleancheck: distclean
 check-am: all-am
 check: check-am
 all-am: Makefile $(LTLIBRARIES) $(PROGRAMS) $(MANS) $(DATA) $(HEADERS) \
-		config.h
+		ares_config.h ares_build.h
 installdirs:
 	for dir in "$(DESTDIR)$(libdir)" "$(DESTDIR)$(man3dir)" "$(DESTDIR)$(pkgconfigdir)" "$(DESTDIR)$(libcares_ladir)"; do \
 	  test -z "$$dir" || $(mkdir_p) "$$dir"; \
@@ -818,16 +1250,18 @@ install-strip:
 mostlyclean-generic:
 
 clean-generic:
+	-test -z "$(CLEANFILES)" || rm -f $(CLEANFILES)
 
 distclean-generic:
 	-test -z "$(CONFIG_CLEAN_FILES)" || rm -f $(CONFIG_CLEAN_FILES)
+	-test -z "$(DISTCLEANFILES)" || rm -f $(DISTCLEANFILES)
 
 maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
 	@echo "it deletes files that may require special tools to rebuild."
 clean: clean-am
 
-clean-am: clean-generic clean-libLTLIBRARIES clean-libtool \
+clean-am: clean-generic clean-libLTLIBRARIES clean-libtool clean-local \
 	clean-noinstPROGRAMS mostlyclean-am
 
 distclean: distclean-am
@@ -840,8 +1274,6 @@ distclean-am: clean-am distclean-compile distclean-generic \
 dvi: dvi-am
 
 dvi-am:
-
-html: html-am
 
 info: info-am
 
@@ -870,8 +1302,6 @@ mostlyclean: mostlyclean-am
 mostlyclean-am: mostlyclean-compile mostlyclean-generic \
 	mostlyclean-libtool
 
-pdf: pdf-am
-
 pdf-am:
 
 ps: ps-am
@@ -885,7 +1315,7 @@ uninstall-am: uninstall-info-am uninstall-libLTLIBRARIES \
 uninstall-man: uninstall-man3
 
 .PHONY: CTAGS GTAGS all all-am am--refresh check check-am clean \
-	clean-generic clean-libLTLIBRARIES clean-libtool \
+	clean-generic clean-libLTLIBRARIES clean-libtool clean-local \
 	clean-noinstPROGRAMS ctags dist dist-all dist-bzip2 dist-gzip \
 	dist-hook dist-shar dist-tarZ dist-zip distcheck distclean \
 	distclean-compile distclean-generic distclean-hdr \
@@ -902,6 +1332,38 @@ uninstall-man: uninstall-man3
 	uninstall-libLTLIBRARIES uninstall-libcares_laHEADERS \
 	uninstall-man uninstall-man3 uninstall-pkgconfigDATA
 
+
+clean-local: clean-sourced-manpages
+
+clean-sourced-manpages:
+	@srcdmandir='$(SOURCEDMANDIR)'; \
+	echo "rm -rf $(top_builddir)/$$srcdmandir"; \
+	rm -rf $(top_builddir)/$$srcdmandir
+
+sourced-manpages: clean-sourced-manpages
+	@srcdmandir='$(SOURCEDMANDIR)'; \
+	srcdmanfiles='$(SOURCEDMANPAGES)'; \
+	mkdir $(top_builddir)/$$srcdmandir; \
+	for file in $$srcdmanfiles; do \
+	  if test -f $(top_srcdir)/$$file; then \
+	    echo "cp $(top_srcdir)/$$file $(top_builddir)/$$srcdmandir/$$file"; \
+	    cp $(top_srcdir)/$$file $(top_builddir)/$$srcdmandir/$$file; \
+	  fi; \
+	done
+
+html: sourced-manpages $(HTMLPAGES)
+
+.3.html:
+	$(MAN2HTML)
+
+pdf: sourced-manpages $(PDFPAGES)
+
+.3.pdf:
+	@(foo=`echo $@ | sed -e 's/\.[0-9]$$//g'`; \
+	groff -Tps -man $< >$$foo.ps; \
+	ps2pdf $$foo.ps $@; \
+	rm $$foo.ps; \
+	echo "converted $< to $@")
 
 # Make files named *.dist replace the file without .dist extension
 dist-hook:

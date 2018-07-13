@@ -1,4 +1,4 @@
-/* $Id: ares_getnameinfo.c,v 1.32 2008-11-28 22:41:14 danf Exp $ */
+/* $Id: ares_getnameinfo.c,v 1.36 2009-11-09 12:56:11 yangtse Exp $ */
 
 /* Copyright 2005 by Dominick Meglio
  *
@@ -14,7 +14,7 @@
  * this software for any purpose.  It is provided "as is"
  * without express or implied warranty.
  */
-#include "setup.h"
+#include "ares_setup.h"
 
 #ifdef HAVE_GETSERVBYPORT_R
 #  if !defined(GETSERVBYPORT_R_ARGS) || \
@@ -61,10 +61,6 @@
 #include "inet_ntop.h"
 #include "ares_private.h"
 
-#ifdef WATT32
-#undef WIN32
-#endif
-
 struct nameinfo_query {
   ares_nameinfo_callback callback;
   void *arg;
@@ -92,18 +88,26 @@ static void append_scopeid(struct sockaddr_in6 *addr6, unsigned int scopeid,
 #endif
 static char *ares_striendstr(const char *s1, const char *s2);
 
-void ares_getnameinfo(ares_channel channel, const struct sockaddr *sa, socklen_t salen,
+void ares_getnameinfo(ares_channel channel, const struct sockaddr *sa,
+                      ares_socklen_t salen,
                       int flags, ares_nameinfo_callback callback, void *arg)
 {
   struct sockaddr_in *addr = NULL;
   struct sockaddr_in6 *addr6 = NULL;
   struct nameinfo_query *niquery;
+  unsigned int port = 0;
 
   /* Verify the buffer size */
   if (salen == sizeof(struct sockaddr_in))
-    addr = (struct sockaddr_in *)sa;
+    {
+      addr = (struct sockaddr_in *)sa;
+      port = addr->sin_port;
+    }
   else if (salen == sizeof(struct sockaddr_in6))
-    addr6 = (struct sockaddr_in6 *)sa;
+    {
+      addr6 = (struct sockaddr_in6 *)sa;
+      port = addr6->sin6_port;
+    }
   else
     {
       callback(arg, ARES_ENOTIMP, 0, NULL, NULL);
@@ -118,12 +122,7 @@ void ares_getnameinfo(ares_channel channel, const struct sockaddr *sa, socklen_t
   if ((flags & ARES_NI_LOOKUPSERVICE) && !(flags & ARES_NI_LOOKUPHOST))
     {
       char buf[33], *service;
-      unsigned int port = 0;
 
-      if (salen == sizeof(struct sockaddr_in))
-        port = addr->sin_port;
-      else
-        port = addr6->sin6_port;
       service = lookup_service((unsigned short)(port & 0xffff),
                                flags, buf, sizeof(buf));
       callback(arg, ARES_SUCCESS, 0, NULL, service);
@@ -136,7 +135,6 @@ void ares_getnameinfo(ares_channel channel, const struct sockaddr *sa, socklen_t
      /* A numeric host can be handled without DNS */
      if ((flags & ARES_NI_NUMERICHOST))
       {
-        unsigned int port = 0;
         char ipbuf[IPBUFSIZ];
         char srvbuf[33];
         char *service = NULL;
@@ -153,7 +151,6 @@ void ares_getnameinfo(ares_channel channel, const struct sockaddr *sa, socklen_t
         if (salen == sizeof(struct sockaddr_in6))
           {
             ares_inet_ntop(AF_INET6, &addr6->sin6_addr, ipbuf, IPBUFSIZ);
-            port = addr6->sin6_port;
             /* If the system supports scope IDs, use it */
 #ifdef HAVE_SOCKADDR_IN6_SIN6_SCOPE_ID
             append_scopeid(addr6, flags, ipbuf, sizeof(ipbuf));
@@ -162,7 +159,6 @@ void ares_getnameinfo(ares_channel channel, const struct sockaddr *sa, socklen_t
         else
           {
             ares_inet_ntop(AF_INET, &addr->sin_addr, ipbuf, IPBUFSIZ);
-            port = addr->sin_port;
           }
         /* They also want a service */
         if (flags & ARES_NI_LOOKUPSERVICE)

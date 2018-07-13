@@ -1,7 +1,7 @@
-/* $Id: ares_init.c,v 1.87 2008-12-04 12:53:03 bagder Exp $ */
+/* $Id: ares_init.c,v 1.103 2009-11-18 10:33:54 yangtse Exp $ */
 
 /* Copyright 1998 by the Massachusetts Institute of Technology.
- * Copyright (C) 2007-2008 by Daniel Stenberg
+ * Copyright (C) 2007-2009 by Daniel Stenberg
  *
  * Permission to use, copy, modify, and distribute this
  * software and its documentation for any purpose and without
@@ -16,11 +16,10 @@
  * without express or implied warranty.
  */
 
-#include "setup.h"
+#include "ares_setup.h"
 
-#if defined(WIN32) && !defined(WATT32)
+#ifdef USE_WINSOCK
 #include <iphlpapi.h>
-#include <malloc.h>
 #endif
 
 #ifdef HAVE_SYS_PARAM_H
@@ -68,6 +67,7 @@
 #include <errno.h>
 #include "ares.h"
 #include "inet_net_pton.h"
+#include "ares_library_init.h"
 #include "ares_private.h"
 
 #ifdef WATT32
@@ -80,14 +80,16 @@ static int init_by_environment(ares_channel channel);
 static int init_by_resolv_conf(ares_channel channel);
 static int init_by_defaults(ares_channel channel);
 
+#ifndef WATT32
 static int config_nameserver(struct server_state **servers, int *nservers,
                              char *str);
+#endif
 static int set_search(ares_channel channel, const char *str);
 static int set_options(ares_channel channel, const char *str);
 static const char *try_option(const char *p, const char *q, const char *opt);
 static int init_id_key(rc4_key* key,int key_data_len);
 
-#ifndef WIN32
+#if !defined(WIN32) && !defined(WATT32)
 static int sortlist_alloc(struct apattern **sortlist, int *nsort, struct apattern *pat);
 static int ip_addr(const char *s, int len, struct in_addr *addr);
 static void natural_mask(struct apattern *pat);
@@ -128,6 +130,9 @@ int ares_init_options(ares_channel *channelptr, struct ares_options *options,
   if (env)
     curl_memlimit(atoi(env));
 #endif
+
+  if (ares_library_initialized() != ARES_SUCCESS)
+    return ARES_ENOTINITIALIZED;
 
   channel = malloc(sizeof(struct ares_channeldata));
   if (!channel) {
@@ -198,12 +203,15 @@ int ares_init_options(ares_channel *channelptr, struct ares_options *options,
       DEBUGF(fprintf(stderr, "Error: init_by_resolv_conf failed: %s\n",
                      ares_strerror(status)));
   }
-  if (status == ARES_SUCCESS) {
-    status = init_by_defaults(channel);
-    if (status != ARES_SUCCESS)
-      DEBUGF(fprintf(stderr, "Error: init_by_defaults failed: %s\n",
-                     ares_strerror(status)));
-  }
+
+  /*
+   * No matter what failed or succeeded, seed defaults to provide
+   * useful behavior for things that we missed.
+   */
+  status = init_by_defaults(channel);
+  if (status != ARES_SUCCESS)
+    DEBUGF(fprintf(stderr, "Error: init_by_defaults failed: %s\n",
+                   ares_strerror(status)));
 
   /* Generate random key */
 
@@ -559,11 +567,8 @@ static int get_res_interfaces_nt(HKEY hKey, const char *subkey, char **obuf)
 
 static int get_iphlpapi_dns_info (char *ret_buf, size_t ret_size)
 {
-  FIXED_INFO    *fi   = alloca (sizeof(*fi));
+  FIXED_INFO    *fi, *newfi;
   DWORD          size = sizeof (*fi);
-  typedef DWORD (WINAPI* get_net_param_func) (FIXED_INFO*, DWORD*);
-  get_net_param_func fpGetNetworkParams;  /* available only on Win-98/2000+ */
-  HMODULE        handle;
   IP_ADDR_STRING *ipAddr;
   int            i, count = 0;
   int            debug  = 0;
@@ -572,23 +577,21 @@ static int get_iphlpapi_dns_info (char *ret_buf, size_t ret_size)
   char          *ret = ret_buf;
   HRESULT        res;
 
+  fi = malloc(size);
   if (!fi)
-     return (0);
+     return 0;
 
-  handle = LoadLibrary ("iphlpapi.dll");
-  if (!handle)
-     return (0);
-
-  fpGetNetworkParams = (get_net_param_func) GetProcAddress (handle, "GetNetworkParams");
-  if (!fpGetNetworkParams)
-     goto quit;
-
-  res = (*fpGetNetworkParams) (fi, &size);
+  res = (*ares_fpGetNetworkParams) (fi, &size);
   if ((res != ERROR_BUFFER_OVERFLOW) && (res != ERROR_SUCCESS))
      goto quit;
 
-  fi = alloca (size);
-  if (!fi || (*fpGetNetworkParams) (fi, &size) != ERROR_SUCCESS)
+  newfi = realloc(fi, size);
+  if (!newfi)
+     goto quit;
+
+  fi = newfi;
+  res = (*ares_fpGetNetworkParams) (fi, &size);
+  if (res != ERROR_SUCCESS)
      goto quit;
 
   if (debug)
@@ -621,20 +624,22 @@ static int get_iphlpapi_dns_info (char *ret_buf, size_t ret_size)
   }
 
 quit:
-  if (handle)
-     FreeLibrary (handle);
+  if (fi)
+     free(fi);
 
   if (debug && left <= ip_size)
      printf ("Too many nameservers. Truncating to %d addressess", count);
   if (ret > ret_buf)
      ret[-1] = '\0';
-  return (count);
+  return count;
 }
 #endif
 
 static int init_by_resolv_conf(ares_channel channel)
 {
+#ifndef WATT32
   char *line = NULL;
+#endif
   int status = -1, nservers = 0, nsort = 0;
   struct server_state *servers = NULL;
   struct apattern *sortlist = NULL;
@@ -792,7 +797,7 @@ DhcpNameServer
     return ARES_SUCCESS; /* use localhost DNS server */
 
   nservers = i;
-  servers = calloc(sizeof(*servers), i);
+  servers = calloc(i, sizeof(struct server_state));
   if (!servers)
      return ARES_ENOMEM;
 
@@ -804,7 +809,7 @@ DhcpNameServer
   {
     char *p;
     FILE *fp;
-    int linesize;
+    size_t linesize;
     int error;
 
     /* Don't read resolv.conf and friends if we don't have to */
@@ -970,6 +975,9 @@ static int init_by_defaults(ares_channel channel)
 {
   char *hostname = NULL;
   int rc = ARES_SUCCESS;
+#ifdef HAVE_GETHOSTNAME
+  char *dot;
+#endif
 
   if (channel->flags == -1)
     channel->flags = 0;
@@ -1039,15 +1047,15 @@ static int init_by_defaults(ares_channel channel)
 
     } while(0);
 
-    if (strchr(hostname, '.'))  {
+    dot = strchr(hostname, '.');
+    if (dot) {
       /* a dot was found */
-
       channel->domains = malloc(sizeof(char *));
       if (!channel->domains) {
         rc = ARES_ENOMEM;
         goto error;
       }
-      channel->domains[0] = strdup(strchr(hostname, '.') + 1);
+      channel->domains[0] = strdup(dot + 1);
       if (!channel->domains[0]) {
         rc = ARES_ENOMEM;
         goto error;
@@ -1087,7 +1095,7 @@ static int init_by_defaults(ares_channel channel)
   return rc;
 }
 
-#ifndef WIN32
+#if !defined(WIN32) && !defined(WATT32)
 static int config_domain(ares_channel channel, char *str)
 {
   char *q;
@@ -1100,11 +1108,19 @@ static int config_domain(ares_channel channel, char *str)
   return set_search(channel, str);
 }
 
+#if defined(__INTEL_COMPILER) && (__INTEL_COMPILER == 910) && \
+    defined(__OPTIMIZE__) && defined(__unix__) &&  defined(__i386__)
+  /* workaround icc 9.1 optimizer issue */
+# define vqualifier volatile
+#else
+# define vqualifier
+#endif
+
 static int config_lookup(ares_channel channel, const char *str,
                          const char *bindch, const char *filech)
 {
   char lookups[3], *l;
-  const char *p;
+  const char *vqualifier p;
 
   /* Set the lookup order.  Only the first letter of each work
    * is relevant, and it has to be "b" for DNS or "f" for the
@@ -1127,9 +1143,9 @@ static int config_lookup(ares_channel channel, const char *str,
   channel->lookups = strdup(lookups);
   return (channel->lookups) ? ARES_SUCCESS : ARES_ENOMEM;
 }
+#endif  /* !WIN32 & !WATT32 */
 
-#endif
-
+#ifndef WATT32
 static int config_nameserver(struct server_state **servers, int *nservers,
                              char *str)
 {
@@ -1272,7 +1288,8 @@ static int config_sortlist(struct apattern **sortlist, int *nsort,
 
   return ARES_SUCCESS;
 }
-#endif
+#endif  /* !WIN32 */
+#endif  /* !WATT32 */
 
 static int set_search(ares_channel channel, const char *str)
 {
@@ -1364,29 +1381,39 @@ static int set_options(ares_channel channel, const char *str)
   return ARES_SUCCESS;
 }
 
-#ifndef WIN32
+static const char *try_option(const char *p, const char *q, const char *opt)
+{
+  size_t len = strlen(opt);
+  return ((size_t)(q - p) >= len && !strncmp(p, opt, len)) ? &p[len] : NULL;
+}
+
+#if !defined(WIN32) && !defined(WATT32)
 static char *try_config(char *s, const char *opt)
 {
   size_t len;
-  ssize_t i;
-  ssize_t j;
   char *p;
+  char *q;
 
   if (!s || !opt)
     /* no line or no option */
     return NULL;
 
   /* trim line comment */
-  for (i = 0; s[i] && s[i] != '#'; ++i);
-  s[i] = '\0';
+  p = s;
+  while (*p && (*p != '#'))
+    p++;
+  *p = '\0';
 
   /* trim trailing whitespace */
-  for (j = i-1; j >= 0 && ISSPACE(s[j]); --j);
-  s[++j] = '\0';
+  q = p - 1;
+  while ((q >= s) && ISSPACE(*q))
+    q--;
+  *++q = '\0';
 
   /* skip leading whitespace */
-  for (i = 0; s[i] && ISSPACE(s[i]); ++i);
-  p = &s[i];
+  p = s;
+  while (*p && ISSPACE(*p))
+    p++;
 
   if (!*p)
     /* empty line */
@@ -1423,15 +1450,7 @@ static char *try_config(char *s, const char *opt)
   /* return pointer to option value */
   return p;
 }
-#endif
 
-static const char *try_option(const char *p, const char *q, const char *opt)
-{
-  size_t len = strlen(opt);
-  return ((size_t)(q - p) >= len && !strncmp(p, opt, len)) ? &p[len] : NULL;
-}
-
-#ifndef WIN32
 static int sortlist_alloc(struct apattern **sortlist, int *nsort,
                           struct apattern *pat)
 {
@@ -1477,7 +1496,8 @@ static void natural_mask(struct apattern *pat)
   else
     pat->mask.addr4.s_addr = htonl(IN_CLASSC_NET);
 }
-#endif
+#endif /* !WIN32 && !WATT32 */
+
 /* initialize an rc4 key. If possible a cryptographically secure random key
    is generated using a suitable function (for example win32's RtlGenRandom as
    described in
@@ -1490,15 +1510,13 @@ static void randomize_key(unsigned char* key,int key_data_len)
   int randomized = 0;
   int counter=0;
 #ifdef WIN32
-  HMODULE lib=LoadLibrary("ADVAPI32.DLL");
-  if (lib) {
-    BOOLEAN (APIENTRY *pfn)(void*, ULONG) =
-      (BOOLEAN (APIENTRY *)(void*,ULONG))GetProcAddress(lib,"SystemFunction036");
-    if (pfn && pfn(key,key_data_len) )
-      randomized = 1;
-
-    FreeLibrary(lib);
-  }
+  BOOLEAN res;
+  if (ares_fpSystemFunction036)
+    {
+      res = (*ares_fpSystemFunction036) (key, key_data_len);
+      if (res)
+        randomized = 1;
+    }
 #else /* !WIN32 */
 #ifdef RANDOM_FILE
   FILE *f = fopen(RANDOM_FILE, "rb");
