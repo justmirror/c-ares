@@ -90,7 +90,8 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 TESTS = arestest$(EXEEXT) fuzzcheck.sh
-noinst_PROGRAMS = arestest$(EXEEXT) aresfuzz$(EXEEXT) dnsdump$(EXEEXT)
+noinst_PROGRAMS = arestest$(EXEEXT) aresfuzz$(EXEEXT) \
+	aresfuzzname$(EXEEXT) dnsdump$(EXEEXT)
 subdir = .
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/../m4/ax_check_user_namespace.m4 \
@@ -115,21 +116,32 @@ CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
 LTLIBRARIES = $(noinst_LTLIBRARIES)
 libgmock_la_LIBADD =
-am_libgmock_la_OBJECTS = libgmock_la-gmock-all.lo
+am_libgmock_la_OBJECTS = libgmock_la-gmock-all.lo \
+	libgmock_la-gmock-cardinalities.lo \
+	libgmock_la-gmock-internal-utils.lo \
+	libgmock_la-gmock-matchers.lo \
+	libgmock_la-gmock-spec-builders.lo libgmock_la-gmock.lo
 libgmock_la_OBJECTS = $(am_libgmock_la_OBJECTS)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
 am__v_lt_0 = --silent
 am__v_lt_1 = 
 libgtest_la_LIBADD =
-am_libgtest_la_OBJECTS = libgtest_la-gtest-all.lo
+am_libgtest_la_OBJECTS = libgtest_la-gtest-all.lo libgtest_la-gtest.lo \
+	libgtest_la-gtest-death-test.lo libgtest_la-gtest-filepath.lo \
+	libgtest_la-gtest-port.lo libgtest_la-gtest-printers.lo \
+	libgtest_la-gtest-test-part.lo libgtest_la-gtest-typed-test.lo
 libgtest_la_OBJECTS = $(am_libgtest_la_OBJECTS)
 PROGRAMS = $(noinst_PROGRAMS)
 am__objects_1 = ares-test-fuzz.$(OBJEXT) ares-fuzz.$(OBJEXT)
 am_aresfuzz_OBJECTS = $(am__objects_1)
 aresfuzz_OBJECTS = $(am_aresfuzz_OBJECTS)
 aresfuzz_DEPENDENCIES = $(ARES_BLD_DIR)/libcares.la
-am__objects_2 = ares-test-main.$(OBJEXT) ares-test-init.$(OBJEXT) \
+am__objects_2 = ares-test-fuzz-name.$(OBJEXT) ares-fuzz.$(OBJEXT)
+am_aresfuzzname_OBJECTS = $(am__objects_2)
+aresfuzzname_OBJECTS = $(am_aresfuzzname_OBJECTS)
+aresfuzzname_DEPENDENCIES = $(ARES_BLD_DIR)/libcares.la
+am__objects_3 = ares-test-main.$(OBJEXT) ares-test-init.$(OBJEXT) \
 	ares-test.$(OBJEXT) ares-test-ns.$(OBJEXT) \
 	ares-test-parse.$(OBJEXT) ares-test-parse-a.$(OBJEXT) \
 	ares-test-parse-aaaa.$(OBJEXT) ares-test-parse-mx.$(OBJEXT) \
@@ -139,8 +151,8 @@ am__objects_2 = ares-test-main.$(OBJEXT) ares-test-init.$(OBJEXT) \
 	ares-test-misc.$(OBJEXT) ares-test-live.$(OBJEXT) \
 	ares-test-mock.$(OBJEXT) ares-test-internal.$(OBJEXT) \
 	dns-proto.$(OBJEXT) dns-proto-test.$(OBJEXT)
-am__objects_3 =
-am_arestest_OBJECTS = $(am__objects_2) $(am__objects_3)
+am__objects_4 =
+am_arestest_OBJECTS = $(am__objects_3) $(am__objects_4)
 arestest_OBJECTS = $(am_arestest_OBJECTS)
 am__DEPENDENCIES_1 =
 arestest_DEPENDENCIES = libgmock.la libgtest.la \
@@ -148,8 +160,8 @@ arestest_DEPENDENCIES = libgmock.la libgtest.la \
 arestest_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(AM_CXXFLAGS) \
 	$(CXXFLAGS) $(arestest_LDFLAGS) $(LDFLAGS) -o $@
-am__objects_4 = dns-proto.$(OBJEXT) dns-dump.$(OBJEXT)
-am_dnsdump_OBJECTS = $(am__objects_4)
+am__objects_5 = dns-proto.$(OBJEXT) dns-dump.$(OBJEXT)
+am_dnsdump_OBJECTS = $(am__objects_5)
 dnsdump_OBJECTS = $(am_dnsdump_OBJECTS)
 dnsdump_DEPENDENCIES = $(ARES_BLD_DIR)/libcares.la
 AM_V_P = $(am__v_P_@AM_V@)
@@ -205,9 +217,11 @@ am__v_CXXLD_ = $(am__v_CXXLD_@AM_DEFAULT_V@)
 am__v_CXXLD_0 = @echo "  CXXLD   " $@;
 am__v_CXXLD_1 = 
 SOURCES = $(libgmock_la_SOURCES) $(libgtest_la_SOURCES) \
-	$(aresfuzz_SOURCES) $(arestest_SOURCES) $(dnsdump_SOURCES)
+	$(aresfuzz_SOURCES) $(aresfuzzname_SOURCES) \
+	$(arestest_SOURCES) $(dnsdump_SOURCES)
 DIST_SOURCES = $(libgmock_la_SOURCES) $(libgtest_la_SOURCES) \
-	$(aresfuzz_SOURCES) $(arestest_SOURCES) $(dnsdump_SOURCES)
+	$(aresfuzz_SOURCES) $(aresfuzzname_SOURCES) \
+	$(arestest_SOURCES) $(dnsdump_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -632,6 +646,9 @@ TESTHEADERS = ares-test.h		\
 FUZZSOURCES = ares-test-fuzz.c		\
   ares-fuzz.c
 
+FUZZNAMESOURCES = ares-test-fuzz-name.c	\
+  ares-fuzz.c
+
 DUMPSOURCES = dns-proto.cc		\
   dns-dump.cc
 
@@ -639,12 +656,63 @@ arestest_SOURCES = $(TESTSOURCES) $(TESTHEADERS)
 arestest_LDADD = libgmock.la libgtest.la $(ARES_BLD_DIR)/libcares.la $(PTHREAD_LIBS)
 arestest_LDFLAGS = $(CODE_COVERAGE_LDFLAGS)
 noinst_LTLIBRARIES = libgmock.la libgtest.la
-libgmock_la_SOURCES = $(GMOCK_DIR)/src/gmock-all.cc
+libgmock_la_SOURCES = $(GMOCK_DIR)/src/gmock-all.cc			\
+  $(GMOCK_DIR)/src/gmock-cardinalities.cc				\
+  $(GMOCK_DIR)/src/gmock-internal-utils.cc				\
+  $(GMOCK_DIR)/src/gmock-matchers.cc					\
+  $(GMOCK_DIR)/src/gmock-spec-builders.cc				\
+  $(GMOCK_DIR)/src/gmock.cc						\
+  $(GMOCK_DIR)/include/gmock/gmock-cardinalities.h			\
+  $(GMOCK_DIR)/include/gmock/gmock-generated-matchers.h		\
+  $(GMOCK_DIR)/include/gmock/gmock-more-actions.h			\
+  $(GMOCK_DIR)/include/gmock/gmock-actions.h				\
+  $(GMOCK_DIR)/include/gmock/gmock-generated-actions.h			\
+  $(GMOCK_DIR)/include/gmock/gmock-matchers.h				\
+  $(GMOCK_DIR)/include/gmock/gmock-generated-function-mockers.h	\
+  $(GMOCK_DIR)/include/gmock/gmock.h					\
+  $(GMOCK_DIR)/include/gmock/gmock-generated-nice-strict.h		\
+  $(GMOCK_DIR)/include/gmock/gmock-spec-builders.h			\
+  $(GMOCK_DIR)/include/gmock/internal/gmock-internal-utils.h		\
+  $(GMOCK_DIR)/include/gmock/internal/gmock-generated-internal-utils.h	\
+  $(GMOCK_DIR)/include/gmock/internal/gmock-port.h			\
+  $(GMOCK_DIR)/include/gmock/gmock-more-matchers.h
+
 libgmock_la_CPPFLAGS = -isystem $(GTEST_DIR)/include -I$(GTEST_DIR) -isystem $(GMOCK_DIR)/include -I$(GMOCK_DIR)
-libgtest_la_SOURCES = $(GTEST_DIR)/src/gtest-all.cc
+libgtest_la_SOURCES = $(GTEST_DIR)/src/gtest-all.cc			\
+  $(GTEST_DIR)/src/gtest.cc						\
+  $(GTEST_DIR)/src/gtest-death-test.cc					\
+  $(GTEST_DIR)/src/gtest-filepath.cc					\
+  $(GTEST_DIR)/src/gtest-port.cc					\
+  $(GTEST_DIR)/src/gtest-printers.cc					\
+  $(GTEST_DIR)/src/gtest-test-part.cc					\
+  $(GTEST_DIR)/src/gtest-typed-test.cc					\
+  $(GTEST_DIR)/src/gtest-internal-inl.h				\
+  $(GTEST_DIR)/include/gtest/gtest-test-part.h				\
+  $(GTEST_DIR)/include/gtest/gtest-param-test.h			\
+  $(GTEST_DIR)/include/gtest/gtest-printers.h				\
+  $(GTEST_DIR)/include/gtest/gtest-message.h				\
+  $(GTEST_DIR)/include/gtest/gtest.h					\
+  $(GTEST_DIR)/include/gtest/gtest_pred_impl.h				\
+  $(GTEST_DIR)/include/gtest/gtest-death-test.h			\
+  $(GTEST_DIR)/include/gtest/gtest-spi.h				\
+  $(GTEST_DIR)/include/gtest/gtest-typed-test.h			\
+  $(GTEST_DIR)/include/gtest/internal/gtest-filepath.h			\
+  $(GTEST_DIR)/include/gtest/internal/gtest-param-util-generated.h	\
+  $(GTEST_DIR)/include/gtest/internal/gtest-type-util.h		\
+  $(GTEST_DIR)/include/gtest/internal/gtest-string.h			\
+  $(GTEST_DIR)/include/gtest/internal/gtest-port.h			\
+  $(GTEST_DIR)/include/gtest/internal/gtest-param-util.h		\
+  $(GTEST_DIR)/include/gtest/internal/gtest-death-test-internal.h	\
+  $(GTEST_DIR)/include/gtest/internal/gtest-linked_ptr.h		\
+  $(GTEST_DIR)/include/gtest/internal/gtest-internal.h			\
+  $(GTEST_DIR)/include/gtest/internal/gtest-tuple.h			\
+  $(GTEST_DIR)/include/gtest/gtest_prod.h
+
 libgtest_la_CPPFLAGS = -isystem $(GTEST_DIR)/include -I$(GTEST_DIR) -isystem $(GMOCK_DIR)/include -I$(GMOCK_DIR)
 aresfuzz_SOURCES = $(FUZZSOURCES)
 aresfuzz_LDADD = $(ARES_BLD_DIR)/libcares.la
+aresfuzzname_SOURCES = $(FUZZNAMESOURCES)
+aresfuzzname_LDADD = $(ARES_BLD_DIR)/libcares.la
 dnsdump_SOURCES = $(DUMPSOURCES)
 dnsdump_LDADD = $(ARES_BLD_DIR)/libcares.la
 all: config.h
@@ -732,6 +800,10 @@ aresfuzz$(EXEEXT): $(aresfuzz_OBJECTS) $(aresfuzz_DEPENDENCIES) $(EXTRA_aresfuzz
 	@rm -f aresfuzz$(EXEEXT)
 	$(AM_V_CCLD)$(LINK) $(aresfuzz_OBJECTS) $(aresfuzz_LDADD) $(LIBS)
 
+aresfuzzname$(EXEEXT): $(aresfuzzname_OBJECTS) $(aresfuzzname_DEPENDENCIES) $(EXTRA_aresfuzzname_DEPENDENCIES) 
+	@rm -f aresfuzzname$(EXEEXT)
+	$(AM_V_CCLD)$(LINK) $(aresfuzzname_OBJECTS) $(aresfuzzname_LDADD) $(LIBS)
+
 arestest$(EXEEXT): $(arestest_OBJECTS) $(arestest_DEPENDENCIES) $(EXTRA_arestest_DEPENDENCIES) 
 	@rm -f arestest$(EXEEXT)
 	$(AM_V_CXXLD)$(arestest_LINK) $(arestest_OBJECTS) $(arestest_LDADD) $(LIBS)
@@ -747,6 +819,7 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ares-fuzz.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ares-test-fuzz-name.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ares-test-fuzz.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ares-test-init.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ares-test-internal.Po@am__quote@
@@ -770,7 +843,19 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/dns-proto-test.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/dns-proto.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libgmock_la-gmock-all.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libgmock_la-gmock-cardinalities.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libgmock_la-gmock-internal-utils.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libgmock_la-gmock-matchers.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libgmock_la-gmock-spec-builders.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libgmock_la-gmock.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libgtest_la-gtest-all.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libgtest_la-gtest-death-test.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libgtest_la-gtest-filepath.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libgtest_la-gtest-port.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libgtest_la-gtest-printers.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libgtest_la-gtest-test-part.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libgtest_la-gtest-typed-test.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libgtest_la-gtest.Plo@am__quote@
 
 .c.o:
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
@@ -821,12 +906,96 @@ libgmock_la-gmock-all.lo: $(GMOCK_DIR)/src/gmock-all.cc
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libgmock_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libgmock_la-gmock-all.lo `test -f '$(GMOCK_DIR)/src/gmock-all.cc' || echo '$(srcdir)/'`$(GMOCK_DIR)/src/gmock-all.cc
 
+libgmock_la-gmock-cardinalities.lo: $(GMOCK_DIR)/src/gmock-cardinalities.cc
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libgmock_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libgmock_la-gmock-cardinalities.lo -MD -MP -MF $(DEPDIR)/libgmock_la-gmock-cardinalities.Tpo -c -o libgmock_la-gmock-cardinalities.lo `test -f '$(GMOCK_DIR)/src/gmock-cardinalities.cc' || echo '$(srcdir)/'`$(GMOCK_DIR)/src/gmock-cardinalities.cc
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libgmock_la-gmock-cardinalities.Tpo $(DEPDIR)/libgmock_la-gmock-cardinalities.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='$(GMOCK_DIR)/src/gmock-cardinalities.cc' object='libgmock_la-gmock-cardinalities.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libgmock_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libgmock_la-gmock-cardinalities.lo `test -f '$(GMOCK_DIR)/src/gmock-cardinalities.cc' || echo '$(srcdir)/'`$(GMOCK_DIR)/src/gmock-cardinalities.cc
+
+libgmock_la-gmock-internal-utils.lo: $(GMOCK_DIR)/src/gmock-internal-utils.cc
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libgmock_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libgmock_la-gmock-internal-utils.lo -MD -MP -MF $(DEPDIR)/libgmock_la-gmock-internal-utils.Tpo -c -o libgmock_la-gmock-internal-utils.lo `test -f '$(GMOCK_DIR)/src/gmock-internal-utils.cc' || echo '$(srcdir)/'`$(GMOCK_DIR)/src/gmock-internal-utils.cc
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libgmock_la-gmock-internal-utils.Tpo $(DEPDIR)/libgmock_la-gmock-internal-utils.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='$(GMOCK_DIR)/src/gmock-internal-utils.cc' object='libgmock_la-gmock-internal-utils.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libgmock_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libgmock_la-gmock-internal-utils.lo `test -f '$(GMOCK_DIR)/src/gmock-internal-utils.cc' || echo '$(srcdir)/'`$(GMOCK_DIR)/src/gmock-internal-utils.cc
+
+libgmock_la-gmock-matchers.lo: $(GMOCK_DIR)/src/gmock-matchers.cc
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libgmock_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libgmock_la-gmock-matchers.lo -MD -MP -MF $(DEPDIR)/libgmock_la-gmock-matchers.Tpo -c -o libgmock_la-gmock-matchers.lo `test -f '$(GMOCK_DIR)/src/gmock-matchers.cc' || echo '$(srcdir)/'`$(GMOCK_DIR)/src/gmock-matchers.cc
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libgmock_la-gmock-matchers.Tpo $(DEPDIR)/libgmock_la-gmock-matchers.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='$(GMOCK_DIR)/src/gmock-matchers.cc' object='libgmock_la-gmock-matchers.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libgmock_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libgmock_la-gmock-matchers.lo `test -f '$(GMOCK_DIR)/src/gmock-matchers.cc' || echo '$(srcdir)/'`$(GMOCK_DIR)/src/gmock-matchers.cc
+
+libgmock_la-gmock-spec-builders.lo: $(GMOCK_DIR)/src/gmock-spec-builders.cc
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libgmock_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libgmock_la-gmock-spec-builders.lo -MD -MP -MF $(DEPDIR)/libgmock_la-gmock-spec-builders.Tpo -c -o libgmock_la-gmock-spec-builders.lo `test -f '$(GMOCK_DIR)/src/gmock-spec-builders.cc' || echo '$(srcdir)/'`$(GMOCK_DIR)/src/gmock-spec-builders.cc
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libgmock_la-gmock-spec-builders.Tpo $(DEPDIR)/libgmock_la-gmock-spec-builders.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='$(GMOCK_DIR)/src/gmock-spec-builders.cc' object='libgmock_la-gmock-spec-builders.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libgmock_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libgmock_la-gmock-spec-builders.lo `test -f '$(GMOCK_DIR)/src/gmock-spec-builders.cc' || echo '$(srcdir)/'`$(GMOCK_DIR)/src/gmock-spec-builders.cc
+
+libgmock_la-gmock.lo: $(GMOCK_DIR)/src/gmock.cc
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libgmock_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libgmock_la-gmock.lo -MD -MP -MF $(DEPDIR)/libgmock_la-gmock.Tpo -c -o libgmock_la-gmock.lo `test -f '$(GMOCK_DIR)/src/gmock.cc' || echo '$(srcdir)/'`$(GMOCK_DIR)/src/gmock.cc
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libgmock_la-gmock.Tpo $(DEPDIR)/libgmock_la-gmock.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='$(GMOCK_DIR)/src/gmock.cc' object='libgmock_la-gmock.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libgmock_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libgmock_la-gmock.lo `test -f '$(GMOCK_DIR)/src/gmock.cc' || echo '$(srcdir)/'`$(GMOCK_DIR)/src/gmock.cc
+
 libgtest_la-gtest-all.lo: $(GTEST_DIR)/src/gtest-all.cc
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libgtest_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libgtest_la-gtest-all.lo -MD -MP -MF $(DEPDIR)/libgtest_la-gtest-all.Tpo -c -o libgtest_la-gtest-all.lo `test -f '$(GTEST_DIR)/src/gtest-all.cc' || echo '$(srcdir)/'`$(GTEST_DIR)/src/gtest-all.cc
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libgtest_la-gtest-all.Tpo $(DEPDIR)/libgtest_la-gtest-all.Plo
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='$(GTEST_DIR)/src/gtest-all.cc' object='libgtest_la-gtest-all.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libgtest_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libgtest_la-gtest-all.lo `test -f '$(GTEST_DIR)/src/gtest-all.cc' || echo '$(srcdir)/'`$(GTEST_DIR)/src/gtest-all.cc
+
+libgtest_la-gtest.lo: $(GTEST_DIR)/src/gtest.cc
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libgtest_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libgtest_la-gtest.lo -MD -MP -MF $(DEPDIR)/libgtest_la-gtest.Tpo -c -o libgtest_la-gtest.lo `test -f '$(GTEST_DIR)/src/gtest.cc' || echo '$(srcdir)/'`$(GTEST_DIR)/src/gtest.cc
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libgtest_la-gtest.Tpo $(DEPDIR)/libgtest_la-gtest.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='$(GTEST_DIR)/src/gtest.cc' object='libgtest_la-gtest.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libgtest_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libgtest_la-gtest.lo `test -f '$(GTEST_DIR)/src/gtest.cc' || echo '$(srcdir)/'`$(GTEST_DIR)/src/gtest.cc
+
+libgtest_la-gtest-death-test.lo: $(GTEST_DIR)/src/gtest-death-test.cc
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libgtest_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libgtest_la-gtest-death-test.lo -MD -MP -MF $(DEPDIR)/libgtest_la-gtest-death-test.Tpo -c -o libgtest_la-gtest-death-test.lo `test -f '$(GTEST_DIR)/src/gtest-death-test.cc' || echo '$(srcdir)/'`$(GTEST_DIR)/src/gtest-death-test.cc
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libgtest_la-gtest-death-test.Tpo $(DEPDIR)/libgtest_la-gtest-death-test.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='$(GTEST_DIR)/src/gtest-death-test.cc' object='libgtest_la-gtest-death-test.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libgtest_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libgtest_la-gtest-death-test.lo `test -f '$(GTEST_DIR)/src/gtest-death-test.cc' || echo '$(srcdir)/'`$(GTEST_DIR)/src/gtest-death-test.cc
+
+libgtest_la-gtest-filepath.lo: $(GTEST_DIR)/src/gtest-filepath.cc
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libgtest_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libgtest_la-gtest-filepath.lo -MD -MP -MF $(DEPDIR)/libgtest_la-gtest-filepath.Tpo -c -o libgtest_la-gtest-filepath.lo `test -f '$(GTEST_DIR)/src/gtest-filepath.cc' || echo '$(srcdir)/'`$(GTEST_DIR)/src/gtest-filepath.cc
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libgtest_la-gtest-filepath.Tpo $(DEPDIR)/libgtest_la-gtest-filepath.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='$(GTEST_DIR)/src/gtest-filepath.cc' object='libgtest_la-gtest-filepath.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libgtest_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libgtest_la-gtest-filepath.lo `test -f '$(GTEST_DIR)/src/gtest-filepath.cc' || echo '$(srcdir)/'`$(GTEST_DIR)/src/gtest-filepath.cc
+
+libgtest_la-gtest-port.lo: $(GTEST_DIR)/src/gtest-port.cc
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libgtest_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libgtest_la-gtest-port.lo -MD -MP -MF $(DEPDIR)/libgtest_la-gtest-port.Tpo -c -o libgtest_la-gtest-port.lo `test -f '$(GTEST_DIR)/src/gtest-port.cc' || echo '$(srcdir)/'`$(GTEST_DIR)/src/gtest-port.cc
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libgtest_la-gtest-port.Tpo $(DEPDIR)/libgtest_la-gtest-port.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='$(GTEST_DIR)/src/gtest-port.cc' object='libgtest_la-gtest-port.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libgtest_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libgtest_la-gtest-port.lo `test -f '$(GTEST_DIR)/src/gtest-port.cc' || echo '$(srcdir)/'`$(GTEST_DIR)/src/gtest-port.cc
+
+libgtest_la-gtest-printers.lo: $(GTEST_DIR)/src/gtest-printers.cc
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libgtest_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libgtest_la-gtest-printers.lo -MD -MP -MF $(DEPDIR)/libgtest_la-gtest-printers.Tpo -c -o libgtest_la-gtest-printers.lo `test -f '$(GTEST_DIR)/src/gtest-printers.cc' || echo '$(srcdir)/'`$(GTEST_DIR)/src/gtest-printers.cc
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libgtest_la-gtest-printers.Tpo $(DEPDIR)/libgtest_la-gtest-printers.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='$(GTEST_DIR)/src/gtest-printers.cc' object='libgtest_la-gtest-printers.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libgtest_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libgtest_la-gtest-printers.lo `test -f '$(GTEST_DIR)/src/gtest-printers.cc' || echo '$(srcdir)/'`$(GTEST_DIR)/src/gtest-printers.cc
+
+libgtest_la-gtest-test-part.lo: $(GTEST_DIR)/src/gtest-test-part.cc
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libgtest_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libgtest_la-gtest-test-part.lo -MD -MP -MF $(DEPDIR)/libgtest_la-gtest-test-part.Tpo -c -o libgtest_la-gtest-test-part.lo `test -f '$(GTEST_DIR)/src/gtest-test-part.cc' || echo '$(srcdir)/'`$(GTEST_DIR)/src/gtest-test-part.cc
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libgtest_la-gtest-test-part.Tpo $(DEPDIR)/libgtest_la-gtest-test-part.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='$(GTEST_DIR)/src/gtest-test-part.cc' object='libgtest_la-gtest-test-part.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libgtest_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libgtest_la-gtest-test-part.lo `test -f '$(GTEST_DIR)/src/gtest-test-part.cc' || echo '$(srcdir)/'`$(GTEST_DIR)/src/gtest-test-part.cc
+
+libgtest_la-gtest-typed-test.lo: $(GTEST_DIR)/src/gtest-typed-test.cc
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libgtest_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libgtest_la-gtest-typed-test.lo -MD -MP -MF $(DEPDIR)/libgtest_la-gtest-typed-test.Tpo -c -o libgtest_la-gtest-typed-test.lo `test -f '$(GTEST_DIR)/src/gtest-typed-test.cc' || echo '$(srcdir)/'`$(GTEST_DIR)/src/gtest-typed-test.cc
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libgtest_la-gtest-typed-test.Tpo $(DEPDIR)/libgtest_la-gtest-typed-test.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='$(GTEST_DIR)/src/gtest-typed-test.cc' object='libgtest_la-gtest-typed-test.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libgtest_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libgtest_la-gtest-typed-test.lo `test -f '$(GTEST_DIR)/src/gtest-typed-test.cc' || echo '$(srcdir)/'`$(GTEST_DIR)/src/gtest-typed-test.cc
 
 mostlyclean-libtool:
 	-rm -f *.lo
